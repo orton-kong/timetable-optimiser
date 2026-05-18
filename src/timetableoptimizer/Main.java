@@ -36,8 +36,10 @@ public class Main {
                     case "0" -> { ConsoleStyle.success("Goodbye."); running = false; }
                     default -> ConsoleStyle.warn("Please enter a valid menu option.");
                 }
+                if (running) pauseBeforeMainMenu();
             } catch (Exception ex) {
                 ConsoleStyle.error("Error: " + ex.getMessage());
+                if (running) pauseBeforeMainMenu();
             }
         }
     }
@@ -80,15 +82,44 @@ public class Main {
 
     private void editClass() {
         ConsoleStyle.heading("Edit Class");
+        if (dataStore.getClasses().isEmpty()) {
+            ConsoleStyle.warn("No class records available to edit.");
+            return;
+        }
+
         classManager.viewAll();
         String id = prompt("Class ID to edit");
-        String field = prompt("Field to edit (same allowed fields as search)");
-        validateField(field);
-        String value = prompt("New value");
-        if (confirm("WARNING: This will permanently edit the selected class record. Continue?")) {
-            classManager.edit(id, field, value);
-            ConsoleStyle.success("Class updated.");
-        } else ConsoleStyle.warn("Edit cancelled.");
+        ClassRecord selected = dataStore.getClasses().get(id);
+        if (selected == null) throw new IllegalArgumentException("No class exists with ID: " + id);
+
+        ConsoleStyle.heading("Editing Class ID: " + id);
+        System.out.println("Type a field number/name to edit it, or type 0 / exit / back when finished.");
+
+        boolean editing = true;
+        while (editing) {
+            System.out.println();
+            System.out.println(ConsoleStyle.BOLD + "Current record:" + ConsoleStyle.RESET);
+            System.out.println("  " + selected.fullSummary());
+            printEditableFields();
+
+            String fieldChoice = prompt("Field to edit");
+            if (isExitEditCommand(fieldChoice)) {
+                editing = false;
+                continue;
+            }
+
+            String field = resolveEditableField(fieldChoice);
+            String value = prompt("New value for " + field);
+            if (confirm("WARNING: This will permanently edit this class record. Continue?")) {
+                classManager.edit(id, field, value);
+                selected = dataStore.getClasses().get(id);
+                ConsoleStyle.success("Class updated. You are still editing the same class record.");
+            } else {
+                ConsoleStyle.warn("Edit cancelled. You are still editing the same class record.");
+            }
+        }
+
+        ConsoleStyle.success("Exited editing mode for class ID: " + id);
     }
 
     private void deleteClass() {
@@ -166,6 +197,8 @@ public class Main {
 
     private void viewTimetable() {
         ConsoleStyle.heading("View Timetable");
+        if (!hasTimetablesOrAbort("view")) return;
+
         timetableManager.listAll();
         String name = prompt("Timetable name");
         timetableManager.view(name);
@@ -173,6 +206,8 @@ public class Main {
 
     private void editTimetable() {
         ConsoleStyle.heading("Edit Timetable");
+        if (!hasTimetablesOrAbort("edit")) return;
+
         timetableManager.listAll();
         String name = prompt("Timetable name");
         timetableManager.view(name);
@@ -193,6 +228,8 @@ public class Main {
 
     private void deleteTimetable() {
         ConsoleStyle.heading("Delete Timetable");
+        if (!hasTimetablesOrAbort("delete")) return;
+
         timetableManager.listAll();
         String name = prompt("Timetable name to delete");
         if (confirm("WARNING: This will permanently delete the selected timetable. Continue?")) {
@@ -203,11 +240,56 @@ public class Main {
 
     private void exportTimetable() throws Exception {
         ConsoleStyle.heading("Export Timetable");
+        if (!hasTimetablesOrAbort("export")) return;
+
         timetableManager.listAll();
         String name = prompt("Timetable name to export");
         String path = prompt("Output CSV path");
         timetableManager.export(name, path);
         ConsoleStyle.success("Timetable exported to " + path);
+    }
+
+    private boolean hasTimetablesOrAbort(String action) {
+        if (!dataStore.getTimetables().isEmpty()) return true;
+        ConsoleStyle.warn("No timetables available to " + action + ". Generate a timetable first.");
+        return false;
+    }
+
+    private void printEditableFields() {
+        ConsoleStyle.heading("Editable Fields");
+        List<String> fields = allowedFields();
+        for (int i = 0; i < fields.size(); i++) {
+            System.out.printf("%2d. %s%n", i + 1, fields.get(i));
+        }
+        System.out.println(" 0. Exit editing mode");
+    }
+
+    private boolean isExitEditCommand(String input) {
+        String normalised = input == null ? "" : input.trim().toLowerCase(Locale.ROOT);
+        return normalised.equals("0") || normalised.equals("exit") || normalised.equals("back") || normalised.equals("done") || normalised.equals("q");
+    }
+
+    private String resolveEditableField(String input) {
+        String trimmed = input == null ? "" : input.trim();
+        if (trimmed.matches("\\d+")) {
+            int index = Integer.parseInt(trimmed);
+            List<String> fields = allowedFields();
+            if (index >= 1 && index <= fields.size()) return fields.get(index - 1);
+            throw new IllegalArgumentException("Field number must be between 1 and " + fields.size() + ", or 0 to exit editing mode.");
+        }
+        validateField(trimmed);
+        return allowedFields().stream()
+                .filter(field -> ClassManager.normaliseField(field).equals(ClassManager.normaliseField(trimmed)))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported field: " + input));
+    }
+
+    private void pauseBeforeMainMenu() {
+        try {
+            Thread.sleep(1200);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private boolean readBoolean(String label, boolean defaultValue) {

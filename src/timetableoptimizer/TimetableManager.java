@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class TimetableManager implements Manager {
-    private DataStore dataStore;
+    private final DataStore dataStore;
 
     public TimetableManager(DataStore dataStore) { this.dataStore = dataStore; }
 
@@ -43,9 +43,9 @@ public class TimetableManager implements Manager {
         ClassRecord selected = t.getClasses().stream().filter(r -> r.getID().equals(recordId)).findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("That class record is not in the timetable."));
         return dataStore.getClasses().values().stream()
-                .filter(r -> r.getTopicCode().equals(selected.getTopicCode()))
-                .filter(r -> r.getClassName().equals(selected.getClassName()))
-                .filter(r -> r.getClassInstance() != selected.getClassInstance() || !r.getAvailability().equals(selected.getAvailability()))
+                .filter(r -> r.getTopicCode().equalsIgnoreCase(selected.getTopicCode()))
+                .filter(r -> r.getClassName().equalsIgnoreCase(selected.getClassName()))
+                .filter(r -> r.getClassInstance() != selected.getClassInstance())
                 .toList();
     }
 
@@ -55,8 +55,11 @@ public class TimetableManager implements Manager {
                 .orElseThrow(() -> new IllegalArgumentException("Old class record is not in the timetable."));
         ClassRecord newRecord = dataStore.getClasses().get(newRecordId);
         if (newRecord == null) throw new IllegalArgumentException("No class exists with ID: " + newRecordId);
-        if (!oldRecord.getTopicCode().equals(newRecord.getTopicCode()) || !oldRecord.getClassName().equals(newRecord.getClassName())) {
+        if (!oldRecord.getTopicCode().equalsIgnoreCase(newRecord.getTopicCode()) || !oldRecord.getClassName().equalsIgnoreCase(newRecord.getClassName())) {
             throw new IllegalArgumentException("Timetable edits may only swap to another class instance with the same class and same topic.");
+        }
+        if (oldRecord.getClassInstance() == newRecord.getClassInstance()) {
+            throw new IllegalArgumentException("Choose a different class instance. The selected replacement is not another class instance.");
         }
         List<ClassRecord> replacementGroup = dataStore.getClasses().values().stream()
                 .filter(r -> r.selectableGroupKey().equals(newRecord.selectableGroupKey())).toList();
@@ -70,7 +73,9 @@ public class TimetableManager implements Manager {
     }
 
     @Override public void delete(String timetableName) {
-        if (dataStore.getTimetables().remove(timetableName) == null) throw new IllegalArgumentException("No timetable exists with name: " + timetableName);
+        String actualName = findActualTimetableName(timetableName);
+        if (actualName == null) throw new IllegalArgumentException("No timetable exists with name: " + timetableName);
+        dataStore.getTimetables().remove(actualName);
     }
 
     public void export(String timetableName, String filePath) throws Exception {
@@ -78,8 +83,16 @@ public class TimetableManager implements Manager {
     }
 
     private Timetable getTimetable(String timetableName) {
-        Timetable t = dataStore.getTimetables().get(timetableName);
-        if (t == null) throw new IllegalArgumentException("No timetable exists with name: " + timetableName);
-        return t;
+        String actualName = findActualTimetableName(timetableName);
+        if (actualName == null) throw new IllegalArgumentException("No timetable exists with name: " + timetableName);
+        return dataStore.getTimetables().get(actualName);
+    }
+
+    private String findActualTimetableName(String timetableName) {
+        if (timetableName == null) return null;
+        return dataStore.getTimetables().keySet().stream()
+                .filter(name -> name.equalsIgnoreCase(timetableName.trim()))
+                .findFirst()
+                .orElse(null);
     }
 }

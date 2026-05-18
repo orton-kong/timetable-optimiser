@@ -10,7 +10,7 @@ public class Timetable {
 
     public Timetable(String name, List<ClassRecord> classes, boolean allowLectureOverlap, Preference prefrences) {
         this.name = name;
-        this.classes = new ArrayList<>(classes);
+        setClasses(classes);
         this.allowLectureOverlap = allowLectureOverlap;
         this.prefrences = prefrences;
     }
@@ -21,7 +21,12 @@ public class Timetable {
     public Preference getPrefrences() { return prefrences; }
 
     public void setName(String name) { this.name = name; }
-    public void setClasses(List<ClassRecord> classes) { this.classes = new ArrayList<>(classes); }
+    public void setClasses(List<ClassRecord> classes) {
+        this.classes = new ArrayList<>();
+        if (classes != null) {
+            for (ClassRecord record : classes) this.classes.add(record.copy());
+        }
+    }
     public void setAllowLectureOverlap(boolean allowLectureOverlap) { this.allowLectureOverlap = allowLectureOverlap; }
     public void setPrefrences(Preference prefrences) { this.prefrences = prefrences; }
 }

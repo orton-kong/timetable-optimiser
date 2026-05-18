@@ -9,21 +9,21 @@ public class TimetableGenerator {
                                               boolean lectureOverlap, Preference preferences, DataStore dataStore) {
         if (topics == null || topics.isEmpty()) throw new IllegalArgumentException("At least one topic must be selected.");
         if (campus == null || campus.isEmpty()) throw new IllegalArgumentException("At least one campus must be selected.");
+        List<String> selectedTopics = topics.stream().map(t -> t.trim().toUpperCase(Locale.ROOT)).distinct().toList();
+        List<Campus> selectedCampuses = campus.stream().distinct().toList();
         if (name == null || name.isBlank()) name = generateName(dataStore);
-        if (dataStore.getTimetables().containsKey(name)) throw new IllegalArgumentException("Timetable name must be unique: " + name);
-
-        List<ClassRecord> pool = dataStore.getClasses().values().stream()
-                .filter(r -> (semester == 0 || r.getAvailability().getSemester() == semester))
-                .filter(r -> topics.contains(r.getTopicCode()))
-                .filter(r -> campus.contains(r.getAvailability().getCampus()))
-                .toList();
-        if (pool.isEmpty()) throw new IllegalArgumentException("No imported classes match the selected semester, topics, and campus choices.");
+        name = name.trim();
+        if (hasTimetableNamed(dataStore, name)) throw new IllegalArgumentException("Timetable name must be unique: " + name);
 
         List<List<List<ClassRecord>>> perTopicPlans = new ArrayList<>();
-        for (String topic : topics) {
-            List<ClassRecord> topicRecords = pool.stream().filter(r -> r.getTopicCode().equals(topic)).toList();
-            List<List<ClassRecord>> plans = buildTopicPlans(topicRecords, lectureOverlap);
-            if (plans.isEmpty()) throw new IllegalArgumentException("No valid class combination could be found for topic " + topic + ".");
+        for (String topic : selectedTopics) {
+            List<ClassRecord> topicRecords = dataStore.getClasses().values().stream()
+                    .filter(r -> (semester == 0 || r.getAvailability().getSemester() == semester))
+                    .filter(r -> r.getTopicCode().equalsIgnoreCase(topic))
+                    .toList();
+            if (topicRecords.isEmpty()) throw new IllegalArgumentException("No imported classes match selected semester for topic " + topic + ".");
+            List<List<ClassRecord>> plans = buildTopicPlans(topic, topicRecords, selectedCampuses, lectureOverlap);
+            if (plans.isEmpty()) throw new IllegalArgumentException("No complete valid class combination could be found for topic " + topic + " with the selected campus choices.");
             perTopicPlans.add(plans);
         }
 
@@ -40,20 +40,45 @@ public class TimetableGenerator {
         throw new UnsupportedOperationException("Use overload with DataStore so generated timetables can be checked for unique names.");
     }
 
+    private static boolean hasTimetableNamed(DataStore dataStore, String name) {
+        return dataStore.getTimetables().keySet().stream().anyMatch(existing -> existing.equalsIgnoreCase(name));
+    }
+
     private static String generateName(DataStore dataStore) {
         int i = dataStore.getTimetables().size() + 1;
-        while (dataStore.getTimetables().containsKey("Timetable " + i)) i++;
+        while (hasTimetableNamed(dataStore, "Timetable " + i)) i++;
         return "Timetable " + i;
     }
 
-    private static List<List<ClassRecord>> buildTopicPlans(List<ClassRecord> topicRecords, boolean lectureOverlap) {
-        if (topicRecords.isEmpty()) return List.of();
-        List<ClassRecord> city = topicRecords.stream().filter(r -> r.getAvailability().getCampus() == Campus.CITY).toList();
-        List<ClassRecord> nonCity = topicRecords.stream().filter(r -> r.getAvailability().getCampus() != Campus.CITY).toList();
+    private static List<List<ClassRecord>> buildTopicPlans(String topic, List<ClassRecord> topicRecords, List<Campus> selectedCampuses, boolean lectureOverlap) {
         List<List<ClassRecord>> plans = new ArrayList<>();
-        if (!city.isEmpty()) plans.addAll(buildPlansWithinCampusRule(city, lectureOverlap));
-        if (!nonCity.isEmpty()) plans.addAll(buildPlansWithinCampusRule(nonCity, lectureOverlap));
+
+        if (selectedCampuses.contains(Campus.CITY)) {
+            List<ClassRecord> cityRecords = topicRecords.stream()
+                    .filter(r -> r.getAvailability().getCampus() == Campus.CITY)
+                    .toList();
+            if (!cityRecords.isEmpty() && selectedRecordsContainCompleteOffering(cityRecords, cityRecords)) {
+                plans.addAll(buildPlansWithinCampusRule(cityRecords, lectureOverlap));
+            }
+        }
+
+        List<ClassRecord> allNonCityRecords = topicRecords.stream()
+                .filter(r -> r.getAvailability().getCampus() != Campus.CITY)
+                .toList();
+        List<ClassRecord> selectedNonCityRecords = allNonCityRecords.stream()
+                .filter(r -> selectedCampuses.contains(r.getAvailability().getCampus()))
+                .toList();
+        if (!selectedNonCityRecords.isEmpty() && selectedRecordsContainCompleteOffering(allNonCityRecords, selectedNonCityRecords)) {
+            plans.addAll(buildPlansWithinCampusRule(selectedNonCityRecords, lectureOverlap));
+        }
+
         return plans;
+    }
+
+    private static boolean selectedRecordsContainCompleteOffering(List<ClassRecord> requiredScope, List<ClassRecord> selectedScope) {
+        Set<String> requiredClassFormats = requiredScope.stream().map(ClassRecord::classFormatKey).collect(Collectors.toCollection(LinkedHashSet::new));
+        Set<String> selectedClassFormats = selectedScope.stream().map(ClassRecord::classFormatKey).collect(Collectors.toSet());
+        return selectedClassFormats.containsAll(requiredClassFormats);
     }
 
     private static List<List<ClassRecord>> buildPlansWithinCampusRule(List<ClassRecord> records, boolean lectureOverlap) {

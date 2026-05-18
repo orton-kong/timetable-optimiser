@@ -13,7 +13,7 @@ public class TimetableExporter {
         Path path = Paths.get(filePath);
         if (path.getParent() != null) Files.createDirectories(path.getParent());
         try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
-            writer.write("Topic,Availability,Class,Class instance,Date,Day,Time,Location");
+            writer.write("Topic code,Topic name,Attendance mode,Campus,Semester,Availability number,Class,Class instance,Date of first class,Date of last class,Day,Start time,End time,Building,Room");
             writer.newLine();
             for (ClassRecord r : timetable.getClasses()) {
                 writer.write(r.toCsvRow());

@@ -40,6 +40,12 @@ public class ClassRecord {
         this.location = location;
     }
 
+    public ClassRecord(ClassRecord other) {
+        this(other.ID, other.topicCode, other.topicName, new Availability(other.availability), other.className,
+                other.classInstance, other.startDate, other.endDate, other.day, other.startTime, other.endTime,
+                other.building, other.location);
+    }
+
     public String getID() { return ID; }
     public String getTopicCode() { return topicCode; }
     public String getTopicName() { return topicName; }
@@ -69,39 +75,55 @@ public class ClassRecord {
     public void setLocation(String location) { this.location = location; }
 
     public String duplicateKey() {
-        return String.join("|", topicCode, topicName, availability.key(), className, String.valueOf(classInstance), startDate.toString(), day.toString()).toLowerCase();
+        return String.join("|", topicCode, topicName, availability.key(), className, String.valueOf(classInstance),
+                startDate.toString(), endDate.toString(), day.toString()).toLowerCase(Locale.ROOT);
     }
 
     public String classGroupKey() {
-        return String.join("|", topicCode, topicName, availability.key(), className, String.valueOf(classInstance)).toLowerCase();
+        return String.join("|", topicCode, topicName, availability.key(), className, String.valueOf(classInstance)).toLowerCase(Locale.ROOT);
     }
 
     public String selectableGroupKey() {
-        return String.join("|", topicCode, className, String.valueOf(classInstance), availability.key()).toLowerCase();
+        return String.join("|", topicCode, className, String.valueOf(classInstance), availability.key()).toLowerCase(Locale.ROOT);
     }
 
     public String classFormatKey() {
-        return (topicCode + "|" + className).toLowerCase();
+        return (topicCode + "|" + className).toLowerCase(Locale.ROOT);
     }
 
-    public boolean isLecture() { return className.toLowerCase().contains("lecture"); }
+    public boolean isLecture() { return className.toLowerCase(Locale.ROOT).contains("lecture"); }
 
     public String shortSummary() {
-        return String.format("[%s] %s %s | %s | %s | %s #%d", ID, topicCode, topicName, availability.display(), className, className, classInstance);
+        return String.format("[%s] %s %s | %s | %s #%d", ID, topicCode, topicName, availability.display(), className, classInstance);
     }
 
     public String fullSummary() {
         return String.format("[%s] %s %s | %s | %s #%d | %s - %s | %s | %s - %s | %s, %s",
                 ID, topicCode, topicName, availability.display(), className, classInstance,
-                DATE_FORMAT.format(startDate), DATE_FORMAT.format(endDate), day,
+                DATE_FORMAT.format(startDate), DATE_FORMAT.format(endDate), prettyDay(day),
                 TIME_FORMAT.format(startTime), TIME_FORMAT.format(endTime), building, location);
     }
 
     public String toCsvRow() {
-        return csv(topicCode + " " + topicName) + "," + csv(availability.display()) + "," + csv(className) + "," + classInstance + "," +
-                csv(DATE_FORMAT.format(startDate) + " - " + DATE_FORMAT.format(endDate)) + "," + prettyDay(day) + "," +
-                csv(TIME_FORMAT.format(startTime) + " - " + TIME_FORMAT.format(endTime)) + "," + csv(building + ", " + location);
+        return String.join(",",
+                csv(topicCode),
+                csv(topicName),
+                csv(availability.getAttendanceMode()),
+                csv(availability.getCampus().getDisplayName()),
+                String.valueOf(availability.getSemester()),
+                String.valueOf(availability.getAvailabilityNum()),
+                csv(className),
+                String.valueOf(classInstance),
+                csv(DATE_FORMAT.format(startDate)),
+                csv(DATE_FORMAT.format(endDate)),
+                csv(prettyDay(day)),
+                csv(TIME_FORMAT.format(startTime)),
+                csv(TIME_FORMAT.format(endTime)),
+                csv(building),
+                csv(location));
     }
+
+    public ClassRecord copy() { return new ClassRecord(this); }
 
     private static String csv(String value) {
         String v = value == null ? "" : value;

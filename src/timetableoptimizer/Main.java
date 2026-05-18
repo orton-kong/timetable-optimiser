@@ -70,7 +70,7 @@ public class Main {
 
     private void searchClasses() {
         ConsoleStyle.heading("Search Classes");
-        System.out.println("Allowed criteria: topicCode, topicName, attendanceMode, campus, semester, availabilityNumber, class, classInstance, startDate, endDate, day, startTime, endTime, building, room");
+        System.out.println("Allowed criteria: topic code, topic name, attendance mode, campus, semester, availability number, class, class instance, date of first class, date of last class, day, start time, end time, building, room");
         System.out.println("Leave all values blank to show all records.");
         Map<String, String> criteria = new LinkedHashMap<>();
         for (String field : allowedFields()) {
@@ -108,14 +108,19 @@ public class Main {
                 continue;
             }
 
-            String field = resolveEditableField(fieldChoice);
-            String value = prompt("New value for " + field);
-            if (confirm("WARNING: This will permanently edit this class record. Continue?")) {
-                classManager.edit(id, field, value);
-                selected = dataStore.getClasses().get(id);
-                ConsoleStyle.success("Class updated. You are still editing the same class record.");
-            } else {
-                ConsoleStyle.warn("Edit cancelled. You are still editing the same class record.");
+            try {
+                String field = resolveEditableField(fieldChoice);
+                String value = prompt("New value for " + field);
+                if (confirm("WARNING: This will permanently edit this class record. Continue?")) {
+                    classManager.edit(id, field, value);
+                    selected = dataStore.getClasses().get(id);
+                    ConsoleStyle.success("Class updated. You are still editing the same class record.");
+                } else {
+                    ConsoleStyle.warn("Edit cancelled. You are still editing the same class record.");
+                }
+            } catch (Exception ex) {
+                ConsoleStyle.error("Edit not applied: " + ex.getMessage());
+                ConsoleStyle.warn("You are still editing the same class record.");
             }
         }
 
@@ -124,9 +129,13 @@ public class Main {
 
     private void deleteClass() {
         ConsoleStyle.heading("Delete Class");
+        if (dataStore.getClasses().isEmpty()) {
+            ConsoleStyle.warn("No class records available to delete.");
+            return;
+        }
         classManager.viewAll();
         String id = prompt("Class ID to delete");
-        if (confirm("WARNING: This will delete the selected class record and remove it from existing timetables. Continue?")) {
+        if (confirm("WARNING: This will permanently delete the selected class record from imported class data. Existing timetables remain as generated snapshots. Continue?")) {
             classManager.delete(id);
             ConsoleStyle.success("Class deleted.");
         } else ConsoleStyle.warn("Delete cancelled.");
@@ -134,15 +143,21 @@ public class Main {
 
     private void generateTimetable() {
         ConsoleStyle.heading("Generate Timetable");
-        String name = promptWithDefault("Timetable name (unique; leave blank to auto-generate)", lastSettings.name);
+        if (dataStore.getClasses().isEmpty()) {
+            ConsoleStyle.warn("Import class data before generating a timetable.");
+            return;
+        }
+
+        if (!lastSettings.name.isBlank()) {
+            System.out.println("Last timetable name: " + lastSettings.name + " (blank still auto-generates a new unique name)");
+        }
+        String name = prompt("Timetable name (unique; leave blank to auto-generate)");
         int semester = readSemester();
         List<String> topics = readTopics();
-        if (topics.isEmpty()) throw new IllegalArgumentException("Selecting no topics is invalid.");
         List<Campus> campuses = readCampuses();
         boolean lectureOverlap = readBoolean("Allow lecture overlap?", lastSettings.lectureOverlap);
         List<Preferences> preferences = readPreferences();
 
-        lastSettings.name = name;
         lastSettings.semester = semester;
         lastSettings.topics = new ArrayList<>(topics);
         lastSettings.campuses = new ArrayList<>(campuses);
@@ -150,6 +165,7 @@ public class Main {
         lastSettings.preferences = new ArrayList<>(preferences);
 
         Timetable timetable = timetableManager.generate(name, semester, topics, campuses, lectureOverlap, new Preference(preferences));
+        lastSettings.name = timetable.getName();
         ConsoleStyle.success("Generated timetable: " + timetable.getName());
         timetableManager.view(timetable.getName());
     }
@@ -165,22 +181,44 @@ public class Main {
     }
 
     private List<String> readTopics() {
-        List<String> importedTopics = dataStore.getClasses().values().stream().map(ClassRecord::getTopicCode).distinct().sorted().toList();
-        if (importedTopics.isEmpty()) throw new IllegalArgumentException("Import class data before generating a timetable.");
+        List<String> importedTopics = dataStore.getClasses().values().stream()
+                .map(r -> r.getTopicCode().toUpperCase(Locale.ROOT))
+                .distinct().sorted().toList();
         System.out.println("Imported topics: " + String.join(", ", importedTopics));
         String def = lastSettings.topics.isEmpty() ? "" : String.join(",", lastSettings.topics);
-        String raw = promptWithDefault("Topics to include (comma-separated topic codes; no blank selection allowed)", def);
-        List<String> selected = splitCsvInput(raw).stream().map(String::toUpperCase).toList();
-        for (String topic : selected) if (!importedTopics.contains(topic)) throw new IllegalArgumentException("Topic is not currently imported: " + topic);
-        return selected;
+        while (true) {
+            String raw = promptWithDefault("Topics to include (comma-separated topic codes; no blank selection allowed)", def);
+            List<String> selected = splitCsvInput(raw).stream().map(s -> s.toUpperCase(Locale.ROOT)).distinct().toList();
+            if (selected.isEmpty()) {
+                ConsoleStyle.warn("Selecting no topics is invalid.");
+                continue;
+            }
+            Optional<String> invalid = selected.stream().filter(topic -> !importedTopics.contains(topic)).findFirst();
+            if (invalid.isPresent()) {
+                ConsoleStyle.warn("Topic is not currently imported: " + invalid.get());
+                continue;
+            }
+            return selected;
+        }
     }
 
     private List<Campus> readCampuses() {
         String def = lastSettings.campuses.stream().map(Enum::name).collect(Collectors.joining(","));
-        String raw = promptWithDefault("Campuses (Bedford, Tonsley, City; comma-separated)", def);
-        List<Campus> campuses = new ArrayList<>();
-        for (String item : splitCsvInput(raw)) campuses.add(Campus.fromString(item));
-        return campuses.stream().distinct().toList();
+        while (true) {
+            try {
+                String raw = promptWithDefault("Campuses (Bedford, Tonsley, City; comma-separated)", def);
+                List<Campus> campuses = new ArrayList<>();
+                for (String item : splitCsvInput(raw)) campuses.add(Campus.fromString(item));
+                campuses = campuses.stream().distinct().toList();
+                if (campuses.isEmpty()) {
+                    ConsoleStyle.warn("At least one campus must be selected.");
+                    continue;
+                }
+                return campuses;
+            } catch (Exception ex) {
+                ConsoleStyle.warn(ex.getMessage());
+            }
+        }
     }
 
     private List<Preferences> readPreferences() {
@@ -188,11 +226,17 @@ public class Main {
         System.out.println("1 Bedford Park, 2 Tonsley, 3 Flinders City Campus, 4 all at same campus, 5 mornings, 6 afternoons,");
         System.out.println("7 Mondays, 8 Tuesdays, 9 Wednesdays, 10 Thursdays, 11 Fridays, 12 evenly spread, 13 compact classes");
         String def = lastSettings.preferences.stream().map(p -> String.valueOf(p.ordinal() + 1)).collect(Collectors.joining(","));
-        String raw = promptWithDefault("Ordered preferences (comma-separated numbers)", def);
-        if (raw.isBlank()) return List.of();
-        List<Preferences> preferences = new ArrayList<>();
-        for (String item : splitCsvInput(raw)) preferences.add(Preferences.fromMenuNumber(Integer.parseInt(item)));
-        return preferences;
+        while (true) {
+            try {
+                String raw = promptWithDefault("Ordered preferences (comma-separated numbers)", def);
+                if (raw.isBlank()) return List.of();
+                LinkedHashSet<Preferences> preferences = new LinkedHashSet<>();
+                for (String item : splitCsvInput(raw)) preferences.add(Preferences.fromMenuNumber(Integer.parseInt(item)));
+                return new ArrayList<>(preferences);
+            } catch (Exception ex) {
+                ConsoleStyle.warn("Preferences must be blank or comma-separated numbers from 1 to 13.");
+            }
+        }
     }
 
     private void viewTimetable() {
@@ -214,6 +258,7 @@ public class Main {
         String oldId = prompt("Class record ID in timetable to swap");
         List<ClassRecord> options = timetableManager.findSwapOptions(name, oldId);
         if (options.isEmpty()) throw new IllegalArgumentException("No alternative instances exist for the same topic and class.");
+        ConsoleStyle.warn("Selecting any record ID from an alternative instance will swap the whole matching class instance group, including all date records for that instance.");
         ClassManager.printView(options);
         String newId = prompt("Replacement class record ID");
         List<String> warnings = timetableManager.swapClassInstance(name, oldId, newId, false);
@@ -293,14 +338,18 @@ public class Main {
     }
 
     private boolean readBoolean(String label, boolean defaultValue) {
-        String raw = promptWithDefault(label + " (yes/no)", defaultValue ? "yes" : "no").trim().toLowerCase(Locale.ROOT);
-        return raw.startsWith("y");
+        while (true) {
+            String raw = promptWithDefault(label + " (yes/no)", defaultValue ? "yes" : "no").trim().toLowerCase(Locale.ROOT);
+            if (raw.equals("yes") || raw.equals("y")) return true;
+            if (raw.equals("no") || raw.equals("n")) return false;
+            ConsoleStyle.warn("Please enter yes or no.");
+        }
     }
 
     private boolean confirm(String warning) {
         ConsoleStyle.warn(warning);
         String answer = prompt("Type YES to confirm");
-        return answer.equals("YES");
+        return answer.equalsIgnoreCase("YES");
     }
 
     private String prompt(String label) { System.out.print(ConsoleStyle.BOLD + label + ": " + ConsoleStyle.RESET); return scanner.nextLine().trim(); }
@@ -317,7 +366,7 @@ public class Main {
     }
 
     private List<String> allowedFields() {
-        return List.of("topicCode", "topicName", "attendanceMode", "campus", "semester", "availabilityNumber", "class", "classInstance", "startDate", "endDate", "day", "startTime", "endTime", "building", "room");
+        return List.of("topic code", "topic name", "attendance mode", "campus", "semester", "availability number", "class", "class instance", "date of first class", "date of last class", "day", "start time", "end time", "building", "room");
     }
 
     private void validateField(String field) {

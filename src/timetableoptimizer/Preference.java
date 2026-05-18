@@ -30,7 +30,9 @@ public class Preference {
     public List<Preferences> getOrderedPreferences() { return orderedPreferences; }
 
     public void setOrderedPreferences(List<Preferences> orderedPreferences) {
-        this.orderedPreferences = new ArrayList<>(orderedPreferences == null ? List.of() : orderedPreferences);
+        this.orderedPreferences = new ArrayList<>();
+        LinkedHashSet<Preferences> unique = new LinkedHashSet<>(orderedPreferences == null ? List.of() : orderedPreferences);
+        this.orderedPreferences.addAll(unique);
         this.campus.clear();
         this.dayOfWeek.clear();
         this.allAtSameCampus = false;

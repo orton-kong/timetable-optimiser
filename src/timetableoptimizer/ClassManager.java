@@ -1,10 +1,12 @@
 package timetableoptimizer;
 
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class ClassManager implements Manager {
-    private DataStore dataStore;
+    private final DataStore dataStore;
+    private static final DateTimeFormatter DISPLAY_DATE = DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.ENGLISH);
 
     public ClassManager(DataStore dataStore) { this.dataStore = dataStore; }
 
@@ -12,6 +14,7 @@ public class ClassManager implements Manager {
         List<ClassRecord> imported = ClassImporter.importClass(filePath);
         int inserted = 0, updated = 0;
         for (ClassRecord incoming : imported) {
+            validateRecord(incoming);
             Optional<ClassRecord> duplicate = dataStore.getClasses().values().stream()
                     .filter(existing -> existing.duplicateKey().equals(incoming.duplicateKey()))
                     .findFirst();
@@ -44,12 +47,18 @@ public class ClassManager implements Manager {
     @Override public void edit(String ID, String field, String value) {
         ClassRecord record = dataStore.getClasses().get(ID);
         if (record == null) throw new IllegalArgumentException("No class exists with ID: " + ID);
-        setField(record, field, value);
+        ClassRecord before = record.copy();
+        try {
+            setField(record, field, value);
+            validateRecord(record);
+        } catch (RuntimeException ex) {
+            restore(record, before);
+            throw ex;
+        }
     }
 
     @Override public void delete(String ID) {
         if (dataStore.getClasses().remove(ID) == null) throw new IllegalArgumentException("No class exists with ID: " + ID);
-        for (Timetable t : dataStore.getTimetables().values()) t.getClasses().removeIf(c -> c.getID().equals(ID));
     }
 
     public ClassRecord findById(String id) { return dataStore.getClasses().get(id); }
@@ -86,13 +95,13 @@ public class ClassManager implements Manager {
             String field = normaliseField(e.getKey());
             String expected = e.getValue().trim().toLowerCase(Locale.ROOT);
             if (expected.isEmpty()) continue;
-            String actual = getFieldValue(r, field).toLowerCase(Locale.ROOT);
+            String actual = getSearchableFieldValue(r, field).toLowerCase(Locale.ROOT);
             if (!actual.contains(expected)) return false;
         }
         return true;
     }
 
-    private static String getFieldValue(ClassRecord r, String field) {
+    private static String getSearchableFieldValue(ClassRecord r, String field) {
         return switch (field) {
             case "topiccode" -> r.getTopicCode();
             case "topicname" -> r.getTopicName();
@@ -102,9 +111,9 @@ public class ClassManager implements Manager {
             case "availabilitynumber", "availabilitynum" -> String.valueOf(r.getAvailability().getAvailabilityNum());
             case "class", "classname" -> r.getClassName();
             case "classinstance" -> String.valueOf(r.getClassInstance());
-            case "dateoffirstclass", "startdate" -> r.getStartDate().toString();
-            case "dateoflastclass", "enddate" -> r.getEndDate().toString();
-            case "day" -> r.getDay().toString();
+            case "dateoffirstclass", "startdate" -> dateSearchValue(r.getStartDate());
+            case "dateoflastclass", "enddate" -> dateSearchValue(r.getEndDate());
+            case "day" -> r.getDay() + " " + ClassRecord.prettyDay(r.getDay());
             case "starttime" -> r.getStartTime().toString();
             case "endtime" -> r.getEndTime().toString();
             case "building" -> r.getBuilding();
@@ -113,26 +122,76 @@ public class ClassManager implements Manager {
         };
     }
 
+    private static String dateSearchValue(LocalDate date) {
+        return date + " " + DISPLAY_DATE.format(date) + " " + DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH).format(date);
+    }
+
     private void setField(ClassRecord r, String field, String value) {
         String f = normaliseField(field);
+        String trimmed = requireNonBlank(value, field);
         switch (f) {
-            case "topiccode" -> r.setTopicCode(value.trim());
-            case "topicname" -> r.setTopicName(value.trim());
-            case "attendancemode" -> r.getAvailability().setAttendanceMode(value.trim());
-            case "campus" -> r.getAvailability().setCampus(Campus.fromString(value));
-            case "semester" -> r.getAvailability().setSemester(Integer.parseInt(value.trim()));
-            case "availabilitynumber", "availabilitynum" -> r.getAvailability().setAvailabilityNum(Integer.parseInt(value.trim()));
-            case "class", "classname" -> r.setClassName(value.trim());
-            case "classinstance" -> r.setClassInstance(Integer.parseInt(value.trim()));
-            case "dateoffirstclass", "startdate" -> r.setStartDate(LocalDate.parse(value.trim()));
-            case "dateoflastclass", "enddate" -> r.setEndDate(LocalDate.parse(value.trim()));
-            case "day" -> r.setDay(DayOfWeek.valueOf(value.trim().toUpperCase(Locale.ROOT)));
-            case "starttime" -> r.setStartTime(LocalTime.parse(value.trim()));
-            case "endtime" -> r.setEndTime(LocalTime.parse(value.trim()));
-            case "building" -> r.setBuilding(value.trim());
-            case "room", "location" -> r.setLocation(value.trim());
+            case "topiccode" -> r.setTopicCode(trimmed.toUpperCase(Locale.ROOT));
+            case "topicname" -> r.setTopicName(trimmed);
+            case "attendancemode" -> r.getAvailability().setAttendanceMode(trimmed);
+            case "campus" -> r.getAvailability().setCampus(Campus.fromString(trimmed));
+            case "semester" -> r.getAvailability().setSemester(Integer.parseInt(trimmed));
+            case "availabilitynumber", "availabilitynum" -> r.getAvailability().setAvailabilityNum(Integer.parseInt(trimmed));
+            case "class", "classname" -> r.setClassName(trimmed);
+            case "classinstance" -> r.setClassInstance(Integer.parseInt(trimmed));
+            case "dateoffirstclass", "startdate" -> r.setStartDate(parseFlexibleDate(trimmed, r.getStartDate().getYear()));
+            case "dateoflastclass", "enddate" -> r.setEndDate(parseFlexibleDate(trimmed, r.getEndDate().getYear()));
+            case "day" -> r.setDay(ClassImporter.parseDay(trimmed));
+            case "starttime" -> r.setStartTime(ClassImporter.parseTime(trimmed));
+            case "endtime" -> r.setEndTime(ClassImporter.parseTime(trimmed));
+            case "building" -> r.setBuilding(trimmed);
+            case "room", "location" -> r.setLocation(trimmed);
             default -> throw new IllegalArgumentException("Unsupported field: " + field);
         }
+    }
+
+    public static LocalDate parseFlexibleDate(String value, int defaultYear) {
+        try { return LocalDate.parse(value.trim()); }
+        catch (RuntimeException ignored) { return ClassImporter.parseDate(value.trim(), defaultYear); }
+    }
+
+    public static void validateRecord(ClassRecord r) {
+        requireNonBlank(r.getTopicCode(), "topic code");
+        requireNonBlank(r.getTopicName(), "topic name");
+        requireNonBlank(r.getClassName(), "class");
+        requireNonBlank(r.getBuilding(), "building");
+        requireNonBlank(r.getLocation(), "room");
+        if (r.getAvailability() == null) throw new IllegalArgumentException("Availability cannot be blank.");
+        r.getAvailability().setAttendanceMode(r.getAvailability().getAttendanceMode());
+        r.getAvailability().setCampus(r.getAvailability().getCampus());
+        r.getAvailability().setSemester(r.getAvailability().getSemester());
+        r.getAvailability().setAvailabilityNum(r.getAvailability().getAvailabilityNum());
+        if (r.getClassInstance() <= 0) throw new IllegalArgumentException("Class instance must be greater than 0.");
+        if (r.getStartDate() == null || r.getEndDate() == null) throw new IllegalArgumentException("Class dates cannot be blank.");
+        if (r.getEndDate().isBefore(r.getStartDate())) throw new IllegalArgumentException("Date of last class cannot be before date of first class.");
+        if (r.getDay() == null) throw new IllegalArgumentException("Day cannot be blank.");
+        if (r.getStartTime() == null || r.getEndTime() == null) throw new IllegalArgumentException("Class times cannot be blank.");
+        if (!r.getEndTime().isAfter(r.getStartTime())) throw new IllegalArgumentException("End time must be after start time.");
+    }
+
+    private static String requireNonBlank(String value, String field) {
+        if (value == null || value.trim().isEmpty()) throw new IllegalArgumentException(field + " cannot be blank.");
+        return value.trim();
+    }
+
+    private void restore(ClassRecord target, ClassRecord source) {
+        target.setID(source.getID());
+        target.setTopicCode(source.getTopicCode());
+        target.setTopicName(source.getTopicName());
+        target.setAvailability(new Availability(source.getAvailability()));
+        target.setClassName(source.getClassName());
+        target.setClassInstance(source.getClassInstance());
+        target.setStartDate(source.getStartDate());
+        target.setEndDate(source.getEndDate());
+        target.setDay(source.getDay());
+        target.setStartTime(source.getStartTime());
+        target.setEndTime(source.getEndTime());
+        target.setBuilding(source.getBuilding());
+        target.setLocation(source.getLocation());
     }
 
     public static String normaliseField(String field) {

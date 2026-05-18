@@ -16,10 +16,10 @@ public class ClashDetector {
                 ClassRecord a = sorted.get(i), b = sorted.get(j);
                 if (a.getDay() != b.getDay()) continue;
                 if (!dateRangesOverlap(a, b)) continue;
-                boolean lectureAllowed = allowLectureOverlap && (a.isLecture() || b.isLecture());
+                boolean lectureCanBeWatchedLater = allowLectureOverlap && (a.isLecture() || b.isLecture());
                 if (timeOverlap(a, b)) {
-                    if (!lectureAllowed) warnings.add("Time clash: " + a.shortSummary() + " overlaps with " + b.shortSummary());
-                } else {
+                    if (!lectureCanBeWatchedLater) warnings.add("Time clash: " + a.shortSummary() + " overlaps with " + b.shortSummary());
+                } else if (!lectureCanBeWatchedLater) {
                     long gap = gapMinutes(a, b);
                     if (gap >= 0 && gap < 30 && a.getAvailability().getCampus() != b.getAvailability().getCampus()) {
                         warnings.add("Insufficient commute gap (" + gap + " minutes): " + a.shortSummary() + " -> " + b.shortSummary());

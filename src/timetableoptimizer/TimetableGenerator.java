@@ -127,26 +127,45 @@ public class TimetableGenerator {
         if (preference == null) return 0;
         int score = 0;
         int weight = preference.getOrderedPreferences().size() + 1;
-        for (Preferences p : preference.getOrderedPreferences()) {
-            int local = switch (p) {
+        for (Enum<?> p : preference.getOrderedPreferences()) {
+            int local = scoreSinglePreference(records, p);
+            score += local * weight;
+            weight--;
+        }
+        return score;
+    }
+
+    private static int scoreSinglePreference(List<ClassRecord> records, Enum<?> preference) {
+        if (preference instanceof LocationPreferences locationPreference) {
+            return switch (locationPreference) {
                 case BEDFORD -> campusCount(records, Campus.BEDFORD);
                 case TONSLEY -> campusCount(records, Campus.TONSLEY);
                 case CITY -> campusCount(records, Campus.CITY);
                 case ALL_AT_SAME_CAMPUS -> allAtSameCampus(records) ? 10 : -10;
+            };
+        }
+        if (preference instanceof TimeOfDayPreferences timePreference) {
+            return switch (timePreference) {
                 case MORNING -> (int) records.stream().filter(r -> r.getStartTime().isBefore(LocalTime.NOON)).count();
                 case AFTERNOON -> (int) records.stream().filter(r -> !r.getStartTime().isBefore(LocalTime.NOON)).count();
+            };
+        }
+        if (preference instanceof DayPreferences dayPreference) {
+            return switch (dayPreference) {
                 case MONDAY -> dayCount(records, DayOfWeek.MONDAY);
                 case TUESDAY -> dayCount(records, DayOfWeek.TUESDAY);
                 case WEDNESDAY -> dayCount(records, DayOfWeek.WEDNESDAY);
                 case THURSDAY -> dayCount(records, DayOfWeek.THURSDAY);
                 case FRIDAY -> dayCount(records, DayOfWeek.FRIDAY);
+            };
+        }
+        if (preference instanceof ClassSpreadPreferences spreadPreference) {
+            return switch (spreadPreference) {
                 case EVEN_SPREAD -> evenSpreadScore(records);
                 case COMPACT_SPREAD -> compactScore(records);
             };
-            score += local * weight;
-            weight--;
         }
-        return score;
+        throw new IllegalArgumentException("Unsupported preference type: " + preference);
     }
 
     private static int campusCount(List<ClassRecord> records, Campus campus) {

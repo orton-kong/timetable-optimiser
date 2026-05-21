@@ -156,7 +156,7 @@ public class Main {
         List<String> topics = readTopics();
         List<Campus> campuses = readCampuses();
         boolean lectureOverlap = readBoolean("Allow lecture overlap?", lastSettings.isLectureOverlap());
-        List<Preferences> preferences = readPreferences();
+        List<Enum<?>> preferences = readPreferences();
 
         lastSettings.setSemester(semester);
         lastSettings.setTopics(new ArrayList<>(topics));
@@ -221,22 +221,58 @@ public class Main {
         }
     }
 
-    private List<Preferences> readPreferences() {
+    private List<Enum<?>> readPreferences() {
         System.out.println("Preference numbers, highest to lowest. Blank is valid.");
         System.out.println("1 Bedford Park, 2 Tonsley, 3 Flinders City Campus, 4 all at same campus, 5 mornings, 6 afternoons,");
         System.out.println("7 Mondays, 8 Tuesdays, 9 Wednesdays, 10 Thursdays, 11 Fridays, 12 evenly spread, 13 compact classes");
-        String def = lastSettings.getPreferences().stream().map(p -> String.valueOf(p.ordinal() + 1)).collect(Collectors.joining(","));
+        String def = lastSettings.getPreferences().stream().map(p -> String.valueOf(preferenceMenuNumber(p))).collect(Collectors.joining(","));
         while (true) {
             try {
                 String raw = promptWithDefault("Ordered preferences (comma-separated numbers)", def);
                 if (raw.isBlank()) return List.of();
-                LinkedHashSet<Preferences> preferences = new LinkedHashSet<>();
-                for (String item : splitCsvInput(raw)) preferences.add(Preferences.fromMenuNumber(Integer.parseInt(item)));
+                LinkedHashSet<Enum<?>> preferences = new LinkedHashSet<>();
+                for (String item : splitCsvInput(raw)) preferences.add(preferenceFromMenuNumber(Integer.parseInt(item)));
                 return new ArrayList<>(preferences);
             } catch (Exception ex) {
                 ConsoleStyle.warn("Preferences must be blank or comma-separated numbers from 1 to 13.");
             }
         }
+    }
+
+    private Enum<?> preferenceFromMenuNumber(int number) {
+        return switch (number) {
+            case 1 -> LocationPreferences.BEDFORD;
+            case 2 -> LocationPreferences.TONSLEY;
+            case 3 -> LocationPreferences.CITY;
+            case 4 -> LocationPreferences.ALL_AT_SAME_CAMPUS;
+            case 5 -> TimeOfDayPreferences.MORNING;
+            case 6 -> TimeOfDayPreferences.AFTERNOON;
+            case 7 -> DayPreferences.MONDAY;
+            case 8 -> DayPreferences.TUESDAY;
+            case 9 -> DayPreferences.WEDNESDAY;
+            case 10 -> DayPreferences.THURSDAY;
+            case 11 -> DayPreferences.FRIDAY;
+            case 12 -> ClassSpreadPreferences.EVEN_SPREAD;
+            case 13 -> ClassSpreadPreferences.COMPACT_SPREAD;
+            default -> throw new IllegalArgumentException("Invalid preference number.");
+        };
+    }
+
+    private int preferenceMenuNumber(Enum<?> preference) {
+        if (preference == LocationPreferences.BEDFORD) return 1;
+        if (preference == LocationPreferences.TONSLEY) return 2;
+        if (preference == LocationPreferences.CITY) return 3;
+        if (preference == LocationPreferences.ALL_AT_SAME_CAMPUS) return 4;
+        if (preference == TimeOfDayPreferences.MORNING) return 5;
+        if (preference == TimeOfDayPreferences.AFTERNOON) return 6;
+        if (preference == DayPreferences.MONDAY) return 7;
+        if (preference == DayPreferences.TUESDAY) return 8;
+        if (preference == DayPreferences.WEDNESDAY) return 9;
+        if (preference == DayPreferences.THURSDAY) return 10;
+        if (preference == DayPreferences.FRIDAY) return 11;
+        if (preference == ClassSpreadPreferences.EVEN_SPREAD) return 12;
+        if (preference == ClassSpreadPreferences.COMPACT_SPREAD) return 13;
+        throw new IllegalArgumentException("Unsupported preference type: " + preference);
     }
 
     private void viewTimetable() {

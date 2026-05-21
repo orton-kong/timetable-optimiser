@@ -148,30 +148,30 @@ public class Main {
             return;
         }
 
-        if (!lastSettings.name.isBlank()) {
-            System.out.println("Last timetable name: " + lastSettings.name + " (blank still auto-generates a new unique name)");
+        if (!lastSettings.getName().isBlank()) {
+            System.out.println("Last timetable name: " + lastSettings.getName() + " (blank still auto-generates a new unique name)");
         }
         String name = prompt("Timetable name (unique; leave blank to auto-generate)");
         int semester = readSemester();
         List<String> topics = readTopics();
         List<Campus> campuses = readCampuses();
-        boolean lectureOverlap = readBoolean("Allow lecture overlap?", lastSettings.lectureOverlap);
+        boolean lectureOverlap = readBoolean("Allow lecture overlap?", lastSettings.isLectureOverlap());
         List<Preferences> preferences = readPreferences();
 
-        lastSettings.semester = semester;
-        lastSettings.topics = new ArrayList<>(topics);
-        lastSettings.campuses = new ArrayList<>(campuses);
-        lastSettings.lectureOverlap = lectureOverlap;
-        lastSettings.preferences = new ArrayList<>(preferences);
+        lastSettings.setSemester(semester);
+        lastSettings.setTopics(new ArrayList<>(topics));
+        lastSettings.setCampuses(new ArrayList<>(campuses));
+        lastSettings.setLectureOverlap(lectureOverlap);
+        lastSettings.setPreferences(new ArrayList<>(preferences));
 
         Timetable timetable = timetableManager.generate(name, semester, topics, campuses, lectureOverlap, new Preference(preferences));
-        lastSettings.name = timetable.getName();
+        lastSettings.setName(timetable.getName());
         ConsoleStyle.success("Generated timetable: " + timetable.getName());
         timetableManager.view(timetable.getName());
     }
 
     private int readSemester() {
-        String current = lastSettings.semester == 0 ? "both" : String.valueOf(lastSettings.semester);
+        String current = lastSettings.getSemester() == 0 ? "both" : String.valueOf(lastSettings.getSemester());
         while (true) {
             String raw = promptWithDefault("Semester (1, 2, or both)", current).trim().toLowerCase(Locale.ROOT);
             if (raw.equals("both") || raw.equals("0") || raw.isBlank()) return 0;
@@ -185,7 +185,7 @@ public class Main {
                 .map(r -> r.getTopicCode().toUpperCase(Locale.ROOT))
                 .distinct().sorted().toList();
         System.out.println("Imported topics: " + String.join(", ", importedTopics));
-        String def = lastSettings.topics.isEmpty() ? "" : String.join(",", lastSettings.topics);
+        String def = lastSettings.getTopics().isEmpty() ? "" : String.join(",", lastSettings.getTopics());
         while (true) {
             String raw = promptWithDefault("Topics to include (comma-separated topic codes; no blank selection allowed)", def);
             List<String> selected = splitCsvInput(raw).stream().map(s -> s.toUpperCase(Locale.ROOT)).distinct().toList();
@@ -203,7 +203,7 @@ public class Main {
     }
 
     private List<Campus> readCampuses() {
-        String def = lastSettings.campuses.stream().map(Enum::name).collect(Collectors.joining(","));
+        String def = lastSettings.getCampuses().stream().map(Enum::name).collect(Collectors.joining(","));
         while (true) {
             try {
                 String raw = promptWithDefault("Campuses (Bedford, Tonsley, City; comma-separated)", def);
@@ -225,7 +225,7 @@ public class Main {
         System.out.println("Preference numbers, highest to lowest. Blank is valid.");
         System.out.println("1 Bedford Park, 2 Tonsley, 3 Flinders City Campus, 4 all at same campus, 5 mornings, 6 afternoons,");
         System.out.println("7 Mondays, 8 Tuesdays, 9 Wednesdays, 10 Thursdays, 11 Fridays, 12 evenly spread, 13 compact classes");
-        String def = lastSettings.preferences.stream().map(p -> String.valueOf(p.ordinal() + 1)).collect(Collectors.joining(","));
+        String def = lastSettings.getPreferences().stream().map(p -> String.valueOf(p.ordinal() + 1)).collect(Collectors.joining(","));
         while (true) {
             try {
                 String raw = promptWithDefault("Ordered preferences (comma-separated numbers)", def);

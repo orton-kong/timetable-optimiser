@@ -17,7 +17,7 @@ class TimetableExporterTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("Constructor")
     @Test
     void construct(){
@@ -26,7 +26,7 @@ class TimetableExporterTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("Export Timetable")
     @Test
     void exportTimetable() throws IOException {
@@ -43,7 +43,7 @@ class TimetableExporterTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("Export Timetable With Clash")
     @Test
     void exportTimetableWithClash() throws IOException {

@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ConsoleStyleTest {
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("Constructor")
     @Test
     void construct(){
@@ -16,7 +16,7 @@ class ConsoleStyleTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("Title")
     @Test
     void title(){
@@ -24,7 +24,7 @@ class ConsoleStyleTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("Heading")
     @Test
     void heading(){
@@ -32,7 +32,7 @@ class ConsoleStyleTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("Success")
     @Test
     void success(){
@@ -40,7 +40,7 @@ class ConsoleStyleTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("Warn")
     @Test
     void warn(){
@@ -48,7 +48,7 @@ class ConsoleStyleTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("Error")
     @Test
     void error(){

@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class CampusTest {
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("Display Names")
     @Test
     void displayNames(){
@@ -18,7 +18,7 @@ class CampusTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("From String")
     @Test
     void fromString(){
@@ -31,7 +31,7 @@ class CampusTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("From String Ignores Spaces And Capitals")
     @Test
     void fromStringIgnoresSpacesAndCapitals(){
@@ -39,7 +39,7 @@ class CampusTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("From String Null")
     @Test
     void fromStringNull(){
@@ -48,7 +48,7 @@ class CampusTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("From String Unknown")
     @Test
     void fromStringUnknown(){

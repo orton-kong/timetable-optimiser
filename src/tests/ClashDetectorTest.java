@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ClashDetectorTest {
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("Empty Clash Detection")
     @Test
     void emptyClashDetection(){
@@ -20,7 +20,7 @@ class ClashDetectorTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("Time Clash")
     @Test
     void timeClash(){
@@ -37,7 +37,7 @@ class ClashDetectorTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("Lecture Clash Allowed")
     @Test
     void lectureClashAllowed(){
@@ -51,7 +51,7 @@ class ClashDetectorTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("Insufficient Commute Gap")
     @Test
     void insufficientCommuteGap(){
@@ -68,7 +68,7 @@ class ClashDetectorTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("No Clash")
     @Test
     void noClash(){
@@ -91,7 +91,7 @@ class ClashDetectorTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Additional")
     @DisplayName("Private Gap Overlap")
     @Test
     void privateGapOverlap() throws Exception {

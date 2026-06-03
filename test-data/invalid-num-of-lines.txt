@@ -1,0 +1,2 @@
+"Topic", "Availability", "Class", "Class instance", "Date", "Day", "Time", "Location"
+"COMP1701 Game Design"

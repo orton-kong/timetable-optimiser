@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Main {
-    private final DataStore dataStore = new DataStore();
+    public final DataStore dataStore = new DataStore();
     private final ClassManager classManager = new ClassManager(dataStore);
     private final TimetableManager timetableManager = new TimetableManager(dataStore);
     private final Scanner scanner = new Scanner(System.in);
@@ -12,7 +12,7 @@ public class Main {
 
     public static void main(String[] args) { new Main().run(); }
 
-    private void run() {
+    public void run() {
         ConsoleStyle.title();
         ConsoleStyle.success("Welcome to Timetable Optimiser. Console input/output only. No GUI required.");
         boolean running = true;
@@ -141,7 +141,7 @@ public class Main {
         } else ConsoleStyle.warn("Delete cancelled.");
     }
 
-    private void generateTimetable() {
+    public void generateTimetable() {
         ConsoleStyle.heading("Generate Timetable");
         if (dataStore.getClasses().isEmpty()) {
             ConsoleStyle.warn("Import class data before generating a timetable.");
@@ -319,7 +319,7 @@ public class Main {
         } else ConsoleStyle.warn("Delete cancelled.");
     }
 
-    private void exportTimetable() throws Exception {
+    public void exportTimetable() throws Exception {
         ConsoleStyle.heading("Export Timetable");
         if (!hasTimetablesOrAbort("export")) return;
 
@@ -350,7 +350,7 @@ public class Main {
         return normalised.equals("0") || normalised.equals("exit") || normalised.equals("back") || normalised.equals("done") || normalised.equals("q");
     }
 
-    private String resolveEditableField(String input) {
+    public String resolveEditableField(String input) {
         String trimmed = input == null ? "" : input.trim();
         if (trimmed.matches("\\d+")) {
             int index = Integer.parseInt(trimmed);

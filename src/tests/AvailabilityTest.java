@@ -1,7 +1,7 @@
-package timetableoptimizer;
+package tests;
 
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.params.ParameterizedTest;
+import timetableoptimizer.*;
 
 import java.util.List;
 import java.util.Objects;
@@ -25,7 +25,9 @@ public class AvailabilityTest {
         assertEquals(9,dataStore.getClasses().size(),"Size not right");
     }
     @Test
-    @DisplayName("Test genuanlly horribe constructer (Like why the fuck did the AI make this?)")
+    @DisplayName("Test constructor")
+    @Tag("Kat")
+    @Tag("additional")
     public void JustGiveMeTheLineCoverige()
     {
         Availability TheTestValue = dataStore.getClasses().get(dataStore.getClasses().keySet().toArray()[0]).getAvailability();
@@ -35,6 +37,8 @@ public class AvailabilityTest {
     }
     @Test
     @DisplayName("Test display() & key()")
+    @Tag("Kat")
+    @Tag("additional")
     public void TestDisplayAndKey()
     {
        //System.out.println("Size is = " + dataStore.getClasses().size());
@@ -50,6 +54,8 @@ public class AvailabilityTest {
 
     }
     @Test
+    @Tag("Kat")
+    @Tag("additional")
     public void TestGetAndSet()
     {
         //System.out.println("Size is = " + dataStore.getClasses().size());
@@ -67,6 +73,8 @@ public class AvailabilityTest {
 
     @Test
     @DisplayName("Test Equals")
+    @Tag("Kat")
+    @Tag("additional")
     public void TestEquals()
     {
         Availability TestValue =  dataStore.getClasses().get(dataStore.getClasses().keySet().toArray()[0]).getAvailability();
@@ -78,6 +86,8 @@ public class AvailabilityTest {
     }
     @Test
     @DisplayName("Test hash")
+    @Tag("Kat")
+    @Tag("additional")
     public void TestHash()
     {
         Availability TheTestValue = dataStore.getClasses().get(dataStore.getClasses().keySet().toArray()[0]).getAvailability();

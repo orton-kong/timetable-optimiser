@@ -1,6 +1,7 @@
-package timetableoptimizer;
+package tests;
 
 import org.junit.jupiter.api.*;
+import timetableoptimizer.*;
 
 import java.io.IOException;
 import java.time.DayOfWeek;
@@ -69,6 +70,8 @@ public class ClassRecordTest {
 
     @Test
     @Order(1)
+    @Tag("Kat")
+    @Tag("Core")
     public void TestGetAndSet()
     {
         String ID = FirstRecord.getID();
@@ -124,6 +127,8 @@ public class ClassRecordTest {
     @Test
     @DisplayName("Test duplicateKey()")
     @Order(2)
+    @Tag("Kat")
+    @Tag("Core")
     public void TestDuplicateKey()
     {
         String Expected = String.format("%s|%s|%s|city|2|1|%s|%s|%s|%s|%s",
@@ -133,6 +138,8 @@ public class ClassRecordTest {
     @Test
     @DisplayName("Test classGroupKey() & selectableGroupKey & classFormatKey")
     @Order(3)
+    @Tag("Kat")
+    @Tag("Core")
     public void TestMultiple()
     {
         String Expected = String.format("%s|%s|%s|city|2|1|%s|%s",
@@ -149,15 +156,19 @@ public class ClassRecordTest {
     @Test
     @DisplayName("Test isLecture()")
     @Order(4)
+    @Tag("Kat")
+    @Tag("Core")
     public void TestIsLecture()
     {
         if (RandomClassTypesIntResult == 0) { assertTrue(FirstRecord.isLecture()); }
         else { assertFalse(FirstRecord.isLecture()); }
     }
     @Test
-    @DisplayName("Test summerys")
+    @DisplayName("Test Summary")
     @Order(5)
-    public void TestSummerys()
+    @Tag("Kat")
+    @Tag("Core")
+    public void TestSummary()
     {
         String Expected = String.format("[%s] %s %s | %s | %s #%d | %s - %s | %s | %s - %s | %s, %s",
                 FirstRecord.getID(), TopicCode, TopicName, FirstRecord.getAvailability().display(), ClassName, FirstRecord.getClassInstance(),
@@ -172,6 +183,8 @@ public class ClassRecordTest {
     @Test
     @DisplayName("Constuctor test")
     @Order(6)
+    @Tag("Kat")
+    @Tag("Core")
     public void TestConstructor()
     {
         ClassRecord AnotherRecord = new ClassRecord(FirstRecord);

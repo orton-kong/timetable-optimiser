@@ -37,7 +37,29 @@ class MainTest {
     void finish() throws Exception {
         System.setIn(oldInput);
         System.setOut(oldOutput);
-        Files.deleteIfExists(Paths.get("out/test-exports/main.csv"));
+    }
+
+    @Tag("Orton")
+    @Tag("Core")
+    @DisplayName("Constructor")
+    @Test
+    void construct(){
+        Main main = new Main();
+        assertNotNull(main);
+    }
+
+    @Tag("Orton")
+    @Tag("Core")
+    @DisplayName("Main")
+    @Test
+    void main(){
+        String fakeTyping = "0\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main.main(new String[0]);
+
+        String text = output.toString();
+        assertTrue(text.contains("Goodbye"));
     }
 
     @Tag("Orton")
@@ -104,6 +126,8 @@ class MainTest {
                 () -> assertTrue(text.contains("Timetable exported to out/test-exports/test.csv")),
                 () -> assertTrue(Files.exists(Paths.get("out/test-exports/test.csv")))
         );
+
+        Files.deleteIfExists(Paths.get("out/test-exports/test.csv"));
     }
 
     @Tag("Orton")

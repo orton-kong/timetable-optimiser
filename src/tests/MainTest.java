@@ -37,6 +37,7 @@ class MainTest {
     void finish() throws Exception {
         System.setIn(oldInput);
         System.setOut(oldOutput);
+        Files.deleteIfExists(Paths.get("out/test-exports/test.csv"));
     }
 
     @Tag("Orton")
@@ -76,6 +77,78 @@ class MainTest {
 
         String text = output.toString();
         assertTrue(text.contains("Goodbye"));
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Print Main Menu")
+    @Test
+    void printMainMenu(){
+        Main main = new Main();
+        main.printMainMenu();
+
+        String text = output.toString();
+        assertAll(
+                () -> assertTrue(text.contains("Main Menu")),
+                () -> assertTrue(text.contains("Generate timetable")),
+                () -> assertTrue(text.contains("0. Exit"))
+        );
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Import Classes")
+    @Test
+    void importClasses() throws Exception {
+        String fakeTyping = "sample-data/sample-classes.csv\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main main = new Main();
+        main.importClasses();
+
+        String text = output.toString();
+        assertAll(
+                () -> assertTrue(text.contains("Import complete")),
+                () -> assertEquals(9, main.dataStore.getClasses().size())
+        );
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Search Classes")
+    @Test
+    void searchClasses() throws Exception {
+        String fakeTyping = "";
+        fakeTyping += "COMP1001\n";
+        fakeTyping += "\n";
+        fakeTyping += "\n";
+        fakeTyping += "\n";
+        fakeTyping += "\n";
+        fakeTyping += "\n";
+        fakeTyping += "\n";
+        fakeTyping += "\n";
+        fakeTyping += "\n";
+        fakeTyping += "\n";
+        fakeTyping += "\n";
+        fakeTyping += "\n";
+        fakeTyping += "\n";
+        fakeTyping += "\n";
+        fakeTyping += "\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main main = new Main();
+        ArrayList<ClassRecord> records = new ArrayList<>(ClassImporter.importClass("sample-data/sample-classes.csv"));
+        for (ClassRecord record : records) {
+            main.dataStore.getClasses().put(record.getID(), record);
+        }
+
+        main.searchClasses();
+
+        String text = output.toString();
+        assertAll(
+                () -> assertTrue(text.contains("Search Classes")),
+                () -> assertTrue(text.contains("COMP1001"))
+        );
     }
 
     @Tag("Orton")
@@ -126,8 +199,6 @@ class MainTest {
                 () -> assertTrue(text.contains("Timetable exported to out/test-exports/test.csv")),
                 () -> assertTrue(Files.exists(Paths.get("out/test-exports/test.csv")))
         );
-
-        Files.deleteIfExists(Paths.get("out/test-exports/test.csv"));
     }
 
     @Tag("Orton")

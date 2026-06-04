@@ -44,7 +44,7 @@ public class Main {
         }
     }
 
-    private void printMainMenu() {
+    public void printMainMenu() {
         ConsoleStyle.heading("Main Menu");
         System.out.println("1. Import classes from CSV");
         System.out.println("2. Browse classes");
@@ -61,14 +61,14 @@ public class Main {
         System.out.println("0. Exit");
     }
 
-    private void importClasses() throws Exception {
+    public void importClasses() throws Exception {
         ConsoleStyle.heading("Import Classes");
         String path = prompt("CSV file path");
         ImportResult result = classManager.importFromCsv(path);
         ConsoleStyle.success("Import complete. New records: " + result.inserted() + ". Updated records: " + result.updated() + ".");
     }
 
-    private void searchClasses() {
+    public void searchClasses() {
         ConsoleStyle.heading("Search Classes");
         System.out.println("Allowed criteria: topic code, topic name, attendance mode, campus, semester, availability number, class, class instance, date of first class, date of last class, day, start time, end time, building, room");
         System.out.println("Leave all values blank to show all records.");

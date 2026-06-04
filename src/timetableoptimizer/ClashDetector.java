@@ -42,7 +42,7 @@ public class ClashDetector {
         return a.getStartTime().isBefore(b.getEndTime()) && b.getStartTime().isBefore(a.getEndTime());
     }
 
-    private static long gapMinutes(ClassRecord a, ClassRecord b) {
+    public static long gapMinutes(ClassRecord a, ClassRecord b) {
         ClassRecord first = a.getEndTime().isBefore(b.getEndTime()) ? a : b;
         ClassRecord second = first == a ? b : a;
         if (first.getEndTime().isAfter(second.getStartTime())) return -1;

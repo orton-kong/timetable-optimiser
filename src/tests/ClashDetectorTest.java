@@ -2,7 +2,6 @@ package tests;
 import org.junit.jupiter.api.*;
 import timetableoptimizer.*;
 
-import java.lang.reflect.Method;
 import java.time.*;
 import java.util.*;
 
@@ -92,15 +91,13 @@ class ClashDetectorTest {
 
     @Tag("Orton")
     @Tag("Additional")
-    @DisplayName("Private Gap Overlap")
+    @DisplayName("Gap Overlap")
     @Test
-    void privateGapOverlap() throws Exception {
+    void gapOverlap(){
         ClassRecord a = makeClass("1", "Workshop", Campus.BEDFORD, DayOfWeek.MONDAY, "09:00", "10:00");
         ClassRecord b = makeClass("2", "Tutorial", Campus.TONSLEY, DayOfWeek.MONDAY, "09:30", "10:30");
-        Method method = ClashDetector.class.getDeclaredMethod("gapMinutes", ClassRecord.class, ClassRecord.class);
-        method.setAccessible(true);
 
-        assertEquals(-1L, method.invoke(null, a, b));
+        assertEquals(-1L, ClashDetector.gapMinutes(a, b));
     }
 
     private ClassRecord makeClass(String id, String className, Campus campus, DayOfWeek day, String start, String end){

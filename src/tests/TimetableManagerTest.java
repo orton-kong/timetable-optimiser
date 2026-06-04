@@ -2,7 +2,6 @@ package tests;
 import org.junit.jupiter.api.*;
 import timetableoptimizer.*;
 
-import java.lang.reflect.*;
 import java.nio.file.*;
 import java.time.*;
 import java.util.*;
@@ -145,16 +144,14 @@ class TimetableManagerTest {
     @Tag("Core")
     @DisplayName("Get Timetable")
     @Test
-    void getTimetable() throws Exception {
+    void getTimetable(){
         TimetableManager manager = makeManagerWithTimetable();
-        Method method = TimetableManager.class.getDeclaredMethod("getTimetable", String.class);
-        method.setAccessible(true);
 
-        Timetable timetable = (Timetable) method.invoke(manager, " test timetable ");
+        Timetable timetable = manager.getTimetable(" test timetable ");
 
         assertAll(
                 () -> assertEquals("Test Timetable", timetable.getName()),
-                () -> assertThrows(InvocationTargetException.class, () -> method.invoke(manager, "missing"))
+                () -> assertThrows(IllegalArgumentException.class, () -> manager.getTimetable("missing"))
         );
     }
 
@@ -162,15 +159,13 @@ class TimetableManagerTest {
     @Tag("Core")
     @DisplayName("Find Actual Timetable Name")
     @Test
-    void findActualTimetableName() throws Exception {
+    void findActualTimetableName(){
         TimetableManager manager = makeManagerWithTimetable();
-        Method method = TimetableManager.class.getDeclaredMethod("findActualTimetableName", String.class);
-        method.setAccessible(true);
 
         assertAll(
-                () -> assertEquals("Test Timetable", method.invoke(manager, " test timetable ")),
-                () -> assertNull(method.invoke(manager, "missing")),
-                () -> assertNull(method.invoke(manager, new Object[]{null}))
+                () -> assertEquals("Test Timetable", manager.findActualTimetableName(" test timetable ")),
+                () -> assertNull(manager.findActualTimetableName("missing")),
+                () -> assertNull(manager.findActualTimetableName(null))
         );
     }
 

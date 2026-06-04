@@ -82,13 +82,13 @@ public class TimetableManager implements Manager {
         TimetableExporter.exportTimetable(getTimetable(timetableName), filePath);
     }
 
-    private Timetable getTimetable(String timetableName) {
+    public Timetable getTimetable(String timetableName) {
         String actualName = findActualTimetableName(timetableName);
         if (actualName == null) throw new IllegalArgumentException("No timetable exists with name: " + timetableName);
         return dataStore.getTimetables().get(actualName);
     }
 
-    private String findActualTimetableName(String timetableName) {
+    public String findActualTimetableName(String timetableName) {
         if (timetableName == null) return null;
         return dataStore.getTimetables().keySet().stream()
                 .filter(name -> name.equalsIgnoreCase(timetableName.trim()))

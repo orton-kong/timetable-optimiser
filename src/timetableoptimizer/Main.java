@@ -170,7 +170,7 @@ public class Main {
         timetableManager.view(timetable.getName());
     }
 
-    private int readSemester() {
+    public int readSemester() {
         String current = lastSettings.getSemester() == 0 ? "both" : String.valueOf(lastSettings.getSemester());
         while (true) {
             String raw = promptWithDefault("Semester (1, 2, or both)", current).trim().toLowerCase(Locale.ROOT);
@@ -180,7 +180,7 @@ public class Main {
         }
     }
 
-    private List<String> readTopics() {
+    public List<String> readTopics() {
         List<String> importedTopics = dataStore.getClasses().values().stream()
                 .map(r -> r.getTopicCode().toUpperCase(Locale.ROOT))
                 .distinct().sorted().toList();
@@ -202,7 +202,7 @@ public class Main {
         }
     }
 
-    private List<Campus> readCampuses() {
+    public List<Campus> readCampuses() {
         String def = lastSettings.getCampuses().stream().map(Enum::name).collect(Collectors.joining(","));
         while (true) {
             try {
@@ -221,7 +221,7 @@ public class Main {
         }
     }
 
-    private List<Enum<?>> readPreferences() {
+    public List<Enum<?>> readPreferences() {
         System.out.println("Preference numbers, highest to lowest. Blank is valid.");
         System.out.println("1 Bedford Park, 2 Tonsley, 3 Flinders City Campus, 4 all at same campus, 5 mornings, 6 afternoons,");
         System.out.println("7 Mondays, 8 Tuesdays, 9 Wednesdays, 10 Thursdays, 11 Fridays, 12 evenly spread, 13 compact classes");
@@ -275,7 +275,7 @@ public class Main {
         throw new IllegalArgumentException("Unsupported preference type: " + preference);
     }
 
-    private void viewTimetable() {
+    public void viewTimetable() {
         ConsoleStyle.heading("View Timetable");
         if (!hasTimetablesOrAbort("view")) return;
 
@@ -284,7 +284,7 @@ public class Main {
         timetableManager.view(name);
     }
 
-    private void editTimetable() {
+    public void editTimetable() {
         ConsoleStyle.heading("Edit Timetable");
         if (!hasTimetablesOrAbort("edit")) return;
 
@@ -307,7 +307,7 @@ public class Main {
         ConsoleStyle.success("Timetable updated.");
     }
 
-    private void deleteTimetable() {
+    public void deleteTimetable() {
         ConsoleStyle.heading("Delete Timetable");
         if (!hasTimetablesOrAbort("delete")) return;
 
@@ -330,13 +330,13 @@ public class Main {
         ConsoleStyle.success("Timetable exported to " + path);
     }
 
-    private boolean hasTimetablesOrAbort(String action) {
+    public boolean hasTimetablesOrAbort(String action) {
         if (!dataStore.getTimetables().isEmpty()) return true;
         ConsoleStyle.warn("No timetables available to " + action + ". Generate a timetable first.");
         return false;
     }
 
-    private void printEditableFields() {
+    public void printEditableFields() {
         ConsoleStyle.heading("Editable Fields");
         List<String> fields = allowedFields();
         for (int i = 0; i < fields.size(); i++) {
@@ -345,7 +345,7 @@ public class Main {
         System.out.println(" 0. Exit editing mode");
     }
 
-    private boolean isExitEditCommand(String input) {
+    public boolean isExitEditCommand(String input) {
         String normalised = input == null ? "" : input.trim().toLowerCase(Locale.ROOT);
         return normalised.equals("0") || normalised.equals("exit") || normalised.equals("back") || normalised.equals("done") || normalised.equals("q");
     }
@@ -365,7 +365,7 @@ public class Main {
                 .orElseThrow(() -> new IllegalArgumentException("Unsupported field: " + input));
     }
 
-    private void pauseBeforeMainMenu() {
+    public void pauseBeforeMainMenu() {
         try {
             Thread.sleep(1200);
         } catch (InterruptedException ex) {
@@ -373,7 +373,7 @@ public class Main {
         }
     }
 
-    private boolean readBoolean(String label, boolean defaultValue) {
+    public boolean readBoolean(String label, boolean defaultValue) {
         while (true) {
             String raw = promptWithDefault(label + " (yes/no)", defaultValue ? "yes" : "no").trim().toLowerCase(Locale.ROOT);
             if (raw.equals("yes") || raw.equals("y")) return true;
@@ -382,30 +382,30 @@ public class Main {
         }
     }
 
-    private boolean confirm(String warning) {
+    public boolean confirm(String warning) {
         ConsoleStyle.warn(warning);
         String answer = prompt("Type YES to confirm");
         return answer.equalsIgnoreCase("YES");
     }
 
-    private String prompt(String label) { System.out.print(ConsoleStyle.BOLD + label + ": " + ConsoleStyle.RESET); return scanner.nextLine().trim(); }
-    private String promptOptional(String label) { System.out.print(label + " (optional): "); return scanner.nextLine().trim(); }
-    private String promptWithDefault(String label, String defaultValue) {
+    public String prompt(String label) { System.out.print(ConsoleStyle.BOLD + label + ": " + ConsoleStyle.RESET); return scanner.nextLine().trim(); }
+    public String promptOptional(String label) { System.out.print(label + " (optional): "); return scanner.nextLine().trim(); }
+    public String promptWithDefault(String label, String defaultValue) {
         System.out.print(ConsoleStyle.BOLD + label + (defaultValue == null || defaultValue.isBlank() ? "" : " [" + defaultValue + "]") + ": " + ConsoleStyle.RESET);
         String raw = scanner.nextLine().trim();
         return raw.isBlank() && defaultValue != null ? defaultValue : raw;
     }
 
-    private List<String> splitCsvInput(String raw) {
+    public List<String> splitCsvInput(String raw) {
         if (raw == null || raw.isBlank()) return List.of();
         return Arrays.stream(raw.split(",")).map(String::trim).filter(s -> !s.isBlank()).toList();
     }
 
-    private List<String> allowedFields() {
+    public List<String> allowedFields() {
         return List.of("topic code", "topic name", "attendance mode", "campus", "semester", "availability number", "class", "class instance", "date of first class", "date of last class", "day", "start time", "end time", "building", "room");
     }
 
-    private void validateField(String field) {
+    public void validateField(String field) {
         String normalised = ClassManager.normaliseField(field);
         boolean ok = allowedFields().stream().map(ClassManager::normaliseField).anyMatch(f -> f.equals(normalised));
         if (!ok) throw new IllegalArgumentException("Additional search/edit criteria are not permitted: " + field);

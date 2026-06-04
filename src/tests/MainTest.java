@@ -230,6 +230,70 @@ class MainTest {
 
     @Tag("Orton")
     @Tag("Critical")
+    @DisplayName("Read Semester")
+    @Test
+    void readSemester(){
+        String fakeTyping = "";
+        fakeTyping += "bad\n";
+        fakeTyping += "2\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main main = new Main();
+
+        assertEquals(2, main.readSemester());
+        assertTrue(output.toString().contains("Semester must be 1, 2, or both"));
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Read Topics")
+    @Test
+    void readTopics(){
+        String fakeTyping = "";
+        fakeTyping += "\n";
+        fakeTyping += "BADTOPIC\n";
+        fakeTyping += "COMP1001\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main main = new Main();
+        ClassRecord record = makeClass("C1");
+        main.dataStore.getClasses().put(record.getID(), record);
+
+        assertEquals(List.of("COMP1001"), main.readTopics());
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Read Campuses")
+    @Test
+    void readCampuses(){
+        String fakeTyping = "";
+        fakeTyping += "bad campus\n";
+        fakeTyping += "Bedford,Tonsley\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main main = new Main();
+
+        assertEquals(List.of(Campus.BEDFORD, Campus.TONSLEY), main.readCampuses());
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Read Preferences")
+    @Test
+    void readPreferences(){
+        String fakeTyping = "";
+        fakeTyping += "99\n";
+        fakeTyping += "1,5,7\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main main = new Main();
+
+        assertEquals(List.of(LocationPreferences.BEDFORD, TimeOfDayPreferences.MORNING, DayPreferences.MONDAY), main.readPreferences());
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
     @DisplayName("Export Timetable")
     @Test
     void exportTimetable() throws Exception {
@@ -254,6 +318,116 @@ class MainTest {
 
     @Tag("Orton")
     @Tag("Critical")
+    @DisplayName("View Timetable")
+    @Test
+    void viewTimetable(){
+        String fakeTyping = "View Test\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main main = new Main();
+        Timetable timetable = new Timetable("View Test", List.of(makeClass("C1")), false, new Preference());
+        main.dataStore.getTimetables().put("View Test", timetable);
+
+        main.viewTimetable();
+
+        String text = output.toString();
+        assertTrue(text.contains("Timetable: View Test"));
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Edit Timetable")
+    @Test
+    void editTimetable(){
+        String fakeTyping = "";
+        fakeTyping += "Edit Test\n";
+        fakeTyping += "T1\n";
+        fakeTyping += "T2\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main main = new Main();
+        ClassRecord oldRecord = makeClass("T1", "Tutorial", 1, DayOfWeek.MONDAY, "09:00", "10:00");
+        ClassRecord newRecord = makeClass("T2", "Tutorial", 2, DayOfWeek.TUESDAY, "09:00", "10:00");
+        main.dataStore.getClasses().put(oldRecord.getID(), oldRecord);
+        main.dataStore.getClasses().put(newRecord.getID(), newRecord);
+        main.dataStore.getTimetables().put("Edit Test", new Timetable("Edit Test", List.of(oldRecord), false, new Preference()));
+
+        main.editTimetable();
+
+        String text = output.toString();
+        assertTrue(text.contains("Timetable updated"));
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Delete Timetable")
+    @Test
+    void deleteTimetable(){
+        String fakeTyping = "";
+        fakeTyping += "Delete Test\n";
+        fakeTyping += "YES\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main main = new Main();
+        Timetable timetable = new Timetable("Delete Test", List.of(makeClass("C1")), false, new Preference());
+        main.dataStore.getTimetables().put("Delete Test", timetable);
+
+        main.deleteTimetable();
+
+        assertEquals(0, main.dataStore.getTimetables().size());
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Has Timetables Or Abort")
+    @Test
+    void hasTimetablesOrAbort(){
+        Main main = new Main();
+
+        assertFalse(main.hasTimetablesOrAbort("view"));
+
+        Timetable timetable = new Timetable("Test", List.of(makeClass("C1")), false, new Preference());
+        main.dataStore.getTimetables().put("Test", timetable);
+
+        assertTrue(main.hasTimetablesOrAbort("view"));
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Print Editable Fields")
+    @Test
+    void printEditableFields(){
+        Main main = new Main();
+
+        main.printEditableFields();
+
+        String text = output.toString();
+        assertAll(
+                () -> assertTrue(text.contains("Editable Fields")),
+                () -> assertTrue(text.contains("topic code")),
+                () -> assertTrue(text.contains("0. Exit editing mode"))
+        );
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Is Exit Edit Command")
+    @Test
+    void isExitEditCommand(){
+        Main main = new Main();
+
+        assertAll(
+                () -> assertTrue(main.isExitEditCommand("0")),
+                () -> assertTrue(main.isExitEditCommand("exit")),
+                () -> assertTrue(main.isExitEditCommand("back")),
+                () -> assertTrue(main.isExitEditCommand("done")),
+                () -> assertTrue(main.isExitEditCommand("q")),
+                () -> assertFalse(main.isExitEditCommand("topic name"))
+        );
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
     @DisplayName("Resolve Editable Field")
     @Test
     void resolveEditableField(){
@@ -267,6 +441,125 @@ class MainTest {
         );
     }
 
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Pause Before Main Menu")
+    @Test
+    void pauseBeforeMainMenu(){
+        Main main = new Main();
+        assertDoesNotThrow(() -> main.pauseBeforeMainMenu());
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Read Boolean")
+    @Test
+    void readBoolean(){
+        String fakeTyping = "";
+        fakeTyping += "maybe\n";
+        fakeTyping += "yes\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main main = new Main();
+
+        assertTrue(main.readBoolean("Question", false));
+        assertTrue(output.toString().contains("Please enter yes or no"));
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Confirm")
+    @Test
+    void confirm(){
+        String fakeTyping = "YES\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main main = new Main();
+
+        assertTrue(main.confirm("Are you sure?"));
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Prompt")
+    @Test
+    void prompt(){
+        String fakeTyping = "hello\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main main = new Main();
+
+        assertEquals("hello", main.prompt("Say something"));
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Prompt Optional")
+    @Test
+    void promptOptional(){
+        String fakeTyping = "optional answer\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main main = new Main();
+
+        assertEquals("optional answer", main.promptOptional("Optional thing"));
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Prompt With Default")
+    @Test
+    void promptWithDefault(){
+        String fakeTyping = "\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main main = new Main();
+
+        assertEquals("default answer", main.promptWithDefault("Question", "default answer"));
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Split Csv Input")
+    @Test
+    void splitCsvInput(){
+        Main main = new Main();
+
+        assertAll(
+                () -> assertEquals(List.of("one", "two", "three"), main.splitCsvInput("one, two,three")),
+                () -> assertEquals(0, main.splitCsvInput("").size()),
+                () -> assertEquals(0, main.splitCsvInput(null).size())
+        );
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Allowed Fields")
+    @Test
+    void allowedFields(){
+        Main main = new Main();
+
+        assertAll(
+                () -> assertTrue(main.allowedFields().contains("topic code")),
+                () -> assertTrue(main.allowedFields().contains("room")),
+                () -> assertEquals(15, main.allowedFields().size())
+        );
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Validate Field")
+    @Test
+    void validateField(){
+        Main main = new Main();
+
+        assertAll(
+                () -> assertDoesNotThrow(() -> main.validateField("topic_code")),
+                () -> assertThrows(IllegalArgumentException.class, () -> main.validateField("not a field"))
+        );
+    }
+
+    //make a quick mock class
     private ClassRecord makeClass(String id){
         return new ClassRecord(
                 id,
@@ -280,6 +573,25 @@ class MainTest {
                 DayOfWeek.MONDAY,
                 LocalTime.parse("09:00"),
                 LocalTime.parse("10:00"),
+                "Building",
+                "Room"
+        );
+    }
+
+    //make a sorta quick mock class
+    private ClassRecord makeClass(String id, String className, int instance, DayOfWeek day, String start, String end){
+        return new ClassRecord(
+                id,
+                "COMP1001",
+                "Programming",
+                new Availability("In person", Campus.BEDFORD, 2, 1),
+                className,
+                instance,
+                LocalDate.of(2026, 7, 27),
+                LocalDate.of(2026, 9, 14),
+                day,
+                LocalTime.parse(start),
+                LocalTime.parse(end),
                 "Building",
                 "Room"
         );

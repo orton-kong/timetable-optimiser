@@ -40,7 +40,7 @@ class MainTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Critical")
     @DisplayName("Constructor")
     @Test
     void construct(){
@@ -49,7 +49,7 @@ class MainTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Critical")
     @DisplayName("Main")
     @Test
     void main(){
@@ -63,7 +63,7 @@ class MainTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Critical")
     @DisplayName("Run")
     @Test
     void run(){
@@ -79,7 +79,7 @@ class MainTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Critical")
     @DisplayName("Generate Timetable")
     @Test
     void generateTimetable() throws Exception {
@@ -105,7 +105,7 @@ class MainTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Critical")
     @DisplayName("Export Timetable")
     @Test
     void exportTimetable() throws Exception {
@@ -131,7 +131,7 @@ class MainTest {
     }
 
     @Tag("Orton")
-    @Tag("Core")
+    @Tag("Critical")
     @DisplayName("Resolve Editable Field")
     @Test
     void resolveEditableField(){

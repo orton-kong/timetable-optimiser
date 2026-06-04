@@ -5,6 +5,7 @@ import timetableoptimizer.TimeOfDayPreferences;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.MethodName.class)
 class TimeOfDayPreferencesTest {
 
     @Tag("Akarsh")

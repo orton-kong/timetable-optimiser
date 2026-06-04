@@ -1,8 +1,6 @@
 package tests;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.security.Key;
 import java.time.DayOfWeek;
@@ -13,6 +11,7 @@ import timetableoptimizer.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.MethodName.class)
 class DataStoreTest {
 
     //--- getClasses() ---//

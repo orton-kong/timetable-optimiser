@@ -12,17 +12,6 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/*
-These tests use fake input because Main asks the user to type answers.
-Every \n means the fake user pressed Enter.
-
-System.setIn(fakeInput) makes Java read from our fake typing. Make sure fake input
-is set before making Main, because Scanner is created in the Main constructor.
-System.setOut(new PrintStream(output)) saves what the program prints.
-
-At the end, the real input and output are restored so other tests do not use fake
-input or output from unrelated tests.
-*/
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class MainTest {
 

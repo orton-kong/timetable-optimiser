@@ -8,6 +8,7 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class AvailabilityTest {
     private static final DataStore dataStore = new DataStore();
     public Availability TheTest;

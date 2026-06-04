@@ -5,6 +5,7 @@ import timetableoptimizer.ClassSpreadPreferences;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.MethodName.class)
 class ClassSpreadPreferencesTest {
 
     @Tag("Akarsh")

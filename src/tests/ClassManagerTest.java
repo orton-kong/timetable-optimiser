@@ -16,6 +16,7 @@ import timetableoptimizer.ImportResult;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.MethodName.class)
 class ClassManagerTest {
     private final InputStream originalInputStream = System.in;
     private final PrintStream originalOutputStream = System.out;

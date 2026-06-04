@@ -5,6 +5,7 @@ import timetableoptimizer.LocationPreferences;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.MethodName.class)
 class LocationPreferencesTest {
 
     @Tag("Akarsh")

@@ -3,6 +3,7 @@ import org.junit.jupiter.api.*;
 import timetableoptimizer.Campus;
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.MethodName.class)
 class CampusTest {
 
     @Tag("Akarsh")

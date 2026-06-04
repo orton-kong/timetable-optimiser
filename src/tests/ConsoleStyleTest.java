@@ -4,6 +4,7 @@ import timetableoptimizer.ConsoleStyle;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.MethodName.class)
 class ConsoleStyleTest {
 
     @Tag("Orton")

@@ -80,7 +80,7 @@ public class Main {
         classManager.printSearch(criteria);
     }
 
-    private void editClass() {
+    public void editClass() {
         ConsoleStyle.heading("Edit Class");
         if (dataStore.getClasses().isEmpty()) {
             ConsoleStyle.warn("No class records available to edit.");
@@ -127,7 +127,7 @@ public class Main {
         ConsoleStyle.success("Exited editing mode for class ID: " + id);
     }
 
-    private void deleteClass() {
+    public void deleteClass() {
         ConsoleStyle.heading("Delete Class");
         if (dataStore.getClasses().isEmpty()) {
             ConsoleStyle.warn("No class records available to delete.");

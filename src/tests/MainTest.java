@@ -4,6 +4,7 @@ import timetableoptimizer.*;
 
 import java.io.*;
 import java.nio.file.*;
+import java.time.*;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -153,6 +154,56 @@ class MainTest {
 
     @Tag("Orton")
     @Tag("Critical")
+    @DisplayName("Edit Class")
+    @Test
+    void editClass(){
+        String fakeTyping = "";
+        fakeTyping += "C1\n";
+        fakeTyping += "topic name\n";
+        fakeTyping += "New Topic Name\n";
+        fakeTyping += "YES\n";
+        fakeTyping += "0\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main main = new Main();
+        ClassRecord record = makeClass("C1");
+        main.dataStore.getClasses().put(record.getID(), record);
+
+        main.editClass();
+
+        String text = output.toString();
+        assertAll(
+                () -> assertEquals("New Topic Name", record.getTopicName()),
+                () -> assertTrue(text.contains("Class updated")),
+                () -> assertTrue(text.contains("Exited editing mode"))
+        );
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
+    @DisplayName("Delete Class")
+    @Test
+    void deleteClass(){
+        String fakeTyping = "";
+        fakeTyping += "C1\n";
+        fakeTyping += "YES\n";
+        System.setIn(new ByteArrayInputStream(fakeTyping.getBytes()));
+
+        Main main = new Main();
+        ClassRecord record = makeClass("C1");
+        main.dataStore.getClasses().put(record.getID(), record);
+
+        main.deleteClass();
+
+        String text = output.toString();
+        assertAll(
+                () -> assertEquals(0, main.dataStore.getClasses().size()),
+                () -> assertTrue(text.contains("Class deleted"))
+        );
+    }
+
+    @Tag("Orton")
+    @Tag("Critical")
     @DisplayName("Generate Timetable")
     @Test
     void generateTimetable() throws Exception {
@@ -213,6 +264,24 @@ class MainTest {
                 () -> assertEquals("topic name", main.resolveEditableField("topic_name")),
                 () -> assertThrows(IllegalArgumentException.class, () -> main.resolveEditableField("99")),
                 () -> assertThrows(IllegalArgumentException.class, () -> main.resolveEditableField("not a field"))
+        );
+    }
+
+    private ClassRecord makeClass(String id){
+        return new ClassRecord(
+                id,
+                "COMP1001",
+                "Programming",
+                new Availability("In person", Campus.BEDFORD, 2, 1),
+                "Tutorial",
+                1,
+                LocalDate.of(2026, 7, 27),
+                LocalDate.of(2026, 9, 14),
+                DayOfWeek.MONDAY,
+                LocalTime.parse("09:00"),
+                LocalTime.parse("10:00"),
+                "Building",
+                "Room"
         );
     }
 }

@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CampusTest {
 
-    @Tag("Orton")
+    @Tag("Akarsh")
     @Tag("Additional")
     @DisplayName("Display Names")
     @Test
@@ -17,7 +17,7 @@ class CampusTest {
         );
     }
 
-    @Tag("Orton")
+    @Tag("Akarsh")
     @Tag("Additional")
     @DisplayName("From String")
     @Test
@@ -30,7 +30,7 @@ class CampusTest {
         );
     }
 
-    @Tag("Orton")
+    @Tag("Akarsh")
     @Tag("Additional")
     @DisplayName("From String Ignores Spaces And Capitals")
     @Test
@@ -38,7 +38,7 @@ class CampusTest {
         assertEquals(Campus.BEDFORD, Campus.fromString("  BEDFORD  "));
     }
 
-    @Tag("Orton")
+    @Tag("Akarsh")
     @Tag("Additional")
     @DisplayName("From String Null")
     @Test
@@ -47,7 +47,7 @@ class CampusTest {
         assertEquals("Campus is missing.", exception.getMessage());
     }
 
-    @Tag("Orton")
+    @Tag("Akarsh")
     @Tag("Additional")
     @DisplayName("From String Unknown")
     @Test

@@ -16,20 +16,20 @@ class TimetableManagerTest {
         Files.deleteIfExists(Paths.get("out/test-exports/manager.csv"));
     }
 
-    @Tag("Orton")
+    @Tag("Nathan")
     @Tag("Core")
     @DisplayName("Constructor")
     @Test
-    void construct(){
+    void testConstruct(){
         TimetableManager manager = new TimetableManager(new DataStore());
         assertNotNull(manager);
     }
 
-    @Tag("Orton")
+    @Tag("Nathan")
     @Tag("Core")
     @DisplayName("Generate")
     @Test
-    void generate(){
+    void testGenerate(){
         DataStore dataStore = makeDataStore();
         TimetableManager manager = new TimetableManager(dataStore);
 
@@ -42,43 +42,43 @@ class TimetableManagerTest {
         );
     }
 
-    @Tag("Orton")
+    @Tag("Nathan")
     @Tag("Core")
     @DisplayName("List All")
     @Test
-    void listAll(){
+    void testListAll(){
         TimetableManager manager = makeManagerWithTimetable();
         TimetableManager emptyManager = new TimetableManager(new DataStore());
         assertDoesNotThrow(() -> manager.listAll());
         assertDoesNotThrow(() -> emptyManager.listAll());
     }
 
-    @Tag("Orton")
+    @Tag("Nathan")
     @Tag("Core")
     @DisplayName("View")
     @Test
-    void view(){
+    void testView(){
         TimetableManager manager = makeManagerWithTimetable();
         TimetableManager clashManager = makeManagerWithClashingTimetable();
         assertDoesNotThrow(() -> manager.view("test timetable"));
         assertDoesNotThrow(() -> clashManager.view("clash timetable"));
     }
 
-    @Tag("Orton")
+    @Tag("Nathan")
     @Tag("Core")
     @DisplayName("Edit")
     @Test
-    void edit(){
+    void testEdit(){
         TimetableManager manager = new TimetableManager(new DataStore());
         Exception exception = assertThrows(UnsupportedOperationException.class, () -> manager.edit("Test", "name", "New"));
         assertEquals("Use swapClassInstance for timetable edits.", exception.getMessage());
     }
 
-    @Tag("Orton")
+    @Tag("Nathan")
     @Tag("Core")
     @DisplayName("Find Swap Options")
     @Test
-    void findSwapOptions(){
+    void testFindSwapOptions(){
         TimetableManager manager = makeManagerWithTimetable();
         List<ClassRecord> options = manager.findSwapOptions("Test Timetable", "T1");
 
@@ -89,11 +89,11 @@ class TimetableManagerTest {
         );
     }
 
-    @Tag("Orton")
+    @Tag("Nathan")
     @Tag("Core")
     @DisplayName("Swap Class Instance")
     @Test
-    void swapClassInstance(){
+    void testSwapClassInstance(){
         TimetableManager manager = makeManagerWithTimetable();
 
         List<String> warnings = manager.swapClassInstance("Test Timetable", "T1", "T2", false);
@@ -112,11 +112,11 @@ class TimetableManagerTest {
         );
     }
 
-    @Tag("Orton")
+    @Tag("Nathan")
     @Tag("Core")
     @DisplayName("Delete")
     @Test
-    void delete(){
+    void testDelete(){
         DataStore dataStore = makeDataStore();
         TimetableManager manager = new TimetableManager(dataStore);
         manager.generate("Test Timetable", 2, List.of("COMP1001"), List.of(Campus.BEDFORD), false, new Preference());
@@ -129,11 +129,11 @@ class TimetableManagerTest {
         );
     }
 
-    @Tag("Orton")
+    @Tag("Nathan")
     @Tag("Core")
     @DisplayName("Export")
     @Test
-    void export() throws Exception {
+    void testExport() throws Exception {
         TimetableManager manager = makeManagerWithTimetable();
 
         manager.export("Test Timetable", "out/test-exports/manager.csv");
@@ -141,11 +141,11 @@ class TimetableManagerTest {
         assertTrue(Files.exists(Paths.get("out/test-exports/manager.csv")));
     }
 
-    @Tag("Orton")
+    @Tag("Nathan")
     @Tag("Core")
     @DisplayName("Get Timetable")
     @Test
-    void getTimetable(){
+    void testGetTimetable(){
         TimetableManager manager = makeManagerWithTimetable();
 
         Timetable timetable = manager.getTimetable(" test timetable ");
@@ -156,11 +156,11 @@ class TimetableManagerTest {
         );
     }
 
-    @Tag("Orton")
+    @Tag("Nathan")
     @Tag("Core")
     @DisplayName("Find Actual Timetable Name")
     @Test
-    void findActualTimetableName(){
+    void testFindActualTimetableName(){
         TimetableManager manager = makeManagerWithTimetable();
 
         assertAll(
@@ -170,14 +170,14 @@ class TimetableManagerTest {
         );
     }
 
-    private TimetableManager makeManagerWithTimetable(){
+    TimetableManager makeManagerWithTimetable(){
         DataStore dataStore = makeDataStore();
         TimetableManager manager = new TimetableManager(dataStore);
         manager.generate("Test Timetable", 2, List.of("COMP1001"), List.of(Campus.BEDFORD), false, new Preference());
         return manager;
     }
 
-    private TimetableManager makeManagerWithClashingTimetable(){
+    TimetableManager makeManagerWithClashingTimetable(){
         DataStore dataStore = new DataStore();
         List<ClassRecord> classes = List.of(
                 makeClass("A", "Lecture", 1, DayOfWeek.MONDAY, "09:00", "10:00"),
@@ -187,7 +187,7 @@ class TimetableManagerTest {
         return new TimetableManager(dataStore);
     }
 
-    private TimetableManager makeManagerWithWarningSwap(){
+    TimetableManager makeManagerWithWarningSwap(){
         DataStore dataStore = new DataStore();
         ClassRecord workshop = makeClass("W1", "Workshop", 1, DayOfWeek.MONDAY, "09:00", "10:00");
         ClassRecord oldTutorial = makeClass("T1", "Tutorial", 1, DayOfWeek.TUESDAY, "09:00", "10:00");
@@ -199,7 +199,7 @@ class TimetableManagerTest {
         return new TimetableManager(dataStore);
     }
 
-    private DataStore makeDataStore(){
+    DataStore makeDataStore(){
         DataStore dataStore = new DataStore();
         add(dataStore, makeClass("L1", "Lecture", 1, DayOfWeek.MONDAY, "09:00", "10:00"));
         add(dataStore, makeClass("T1", "Tutorial", 1, DayOfWeek.TUESDAY, "09:00", "10:00"));
@@ -207,11 +207,11 @@ class TimetableManagerTest {
         return dataStore;
     }
 
-    private void add(DataStore dataStore, ClassRecord record){
+    void add(DataStore dataStore, ClassRecord record){
         dataStore.getClasses().put(record.getID(), record);
     }
 
-    private ClassRecord makeClass(String id, String className, int instance, DayOfWeek day, String start, String end){
+    ClassRecord makeClass(String id, String className, int instance, DayOfWeek day, String start, String end){
         return new ClassRecord(
                 id,
                 "COMP1001",

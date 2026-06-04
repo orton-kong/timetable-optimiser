@@ -35,22 +35,17 @@ public class TimetableGenerator {
         return new Timetable(name, best.records, lectureOverlap, preferences);
     }
 
-    public static Timetable generateTimetable(String name, int semester, List<String> topics, List<Campus> campus,
-                                              boolean lectureOverlap, Preference preferences) {
-        throw new UnsupportedOperationException("Use overload with DataStore so generated timetables can be checked for unique names.");
-    }
-
-    private static boolean hasTimetableNamed(DataStore dataStore, String name) {
+    public static boolean hasTimetableNamed(DataStore dataStore, String name) {
         return dataStore.getTimetables().keySet().stream().anyMatch(existing -> existing.equalsIgnoreCase(name));
     }
 
-    private static String generateName(DataStore dataStore) {
+    public static String generateName(DataStore dataStore) {
         int i = dataStore.getTimetables().size() + 1;
         while (hasTimetableNamed(dataStore, "Timetable " + i)) i++;
         return "Timetable " + i;
     }
 
-    private static List<List<ClassRecord>> buildTopicPlans(String topic, List<ClassRecord> topicRecords, List<Campus> selectedCampuses, boolean lectureOverlap) {
+    public static List<List<ClassRecord>> buildTopicPlans(String topic, List<ClassRecord> topicRecords, List<Campus> selectedCampuses, boolean lectureOverlap) {
         List<List<ClassRecord>> plans = new ArrayList<>();
 
         if (selectedCampuses.contains(Campus.CITY)) {
@@ -75,13 +70,13 @@ public class TimetableGenerator {
         return plans;
     }
 
-    private static boolean selectedRecordsContainCompleteOffering(List<ClassRecord> requiredScope, List<ClassRecord> selectedScope) {
+    public static boolean selectedRecordsContainCompleteOffering(List<ClassRecord> requiredScope, List<ClassRecord> selectedScope) {
         Set<String> requiredClassFormats = requiredScope.stream().map(ClassRecord::classFormatKey).collect(Collectors.toCollection(LinkedHashSet::new));
         Set<String> selectedClassFormats = selectedScope.stream().map(ClassRecord::classFormatKey).collect(Collectors.toSet());
         return selectedClassFormats.containsAll(requiredClassFormats);
     }
 
-    private static List<List<ClassRecord>> buildPlansWithinCampusRule(List<ClassRecord> records, boolean lectureOverlap) {
+    public static List<List<ClassRecord>> buildPlansWithinCampusRule(List<ClassRecord> records, boolean lectureOverlap) {
         Map<String, Map<String, List<ClassRecord>>> classFormatToInstance = new LinkedHashMap<>();
         for (ClassRecord r : records) {
             classFormatToInstance.computeIfAbsent(r.classFormatKey(), k -> new LinkedHashMap<>())
@@ -94,7 +89,7 @@ public class TimetableGenerator {
         return plans;
     }
 
-    private static void backtrackOptions(List<List<List<ClassRecord>>> options, int index, List<ClassRecord> current,
+    public static void backtrackOptions(List<List<List<ClassRecord>>> options, int index, List<ClassRecord> current,
                                          List<List<ClassRecord>> plans, boolean lectureOverlap) {
         if (index == options.size()) {
             if (!ClashDetector.hasHardClash(current, lectureOverlap)) plans.add(new ArrayList<>(current));
@@ -107,7 +102,7 @@ public class TimetableGenerator {
         }
     }
 
-    private static void combineTopics(List<List<List<ClassRecord>>> perTopicPlans, int index, List<ClassRecord> current,
+    public static void combineTopics(List<List<List<ClassRecord>>> perTopicPlans, int index, List<ClassRecord> current,
                                       boolean lectureOverlap, Preference preference, SearchState best) {
         if (index == perTopicPlans.size()) {
             if (!ClashDetector.hasHardClash(current, lectureOverlap)) {
@@ -123,7 +118,7 @@ public class TimetableGenerator {
         }
     }
 
-    private static int score(List<ClassRecord> records, Preference preference) {
+    public static int score(List<ClassRecord> records, Preference preference) {
         if (preference == null) return 0;
         int score = 0;
         int weight = preference.getOrderedPreferences().size() + 1;
@@ -135,7 +130,7 @@ public class TimetableGenerator {
         return score;
     }
 
-    private static int scoreSinglePreference(List<ClassRecord> records, Enum<?> preference) {
+    public static int scoreSinglePreference(List<ClassRecord> records, Enum<?> preference) {
         if (preference instanceof LocationPreferences locationPreference) {
             return switch (locationPreference) {
                 case BEDFORD -> campusCount(records, Campus.BEDFORD);
@@ -168,19 +163,19 @@ public class TimetableGenerator {
         throw new IllegalArgumentException("Unsupported preference type: " + preference);
     }
 
-    private static int campusCount(List<ClassRecord> records, Campus campus) {
+    public static int campusCount(List<ClassRecord> records, Campus campus) {
         return (int) records.stream().filter(r -> r.getAvailability().getCampus() == campus).count();
     }
-    private static int dayCount(List<ClassRecord> records, DayOfWeek day) {
+    public static int dayCount(List<ClassRecord> records, DayOfWeek day) {
         return (int) records.stream().filter(r -> r.getDay() == day).count();
     }
-    private static boolean allAtSameCampus(List<ClassRecord> records) {
+    public static boolean allAtSameCampus(List<ClassRecord> records) {
         return records.stream().map(r -> r.getAvailability().getCampus()).collect(Collectors.toSet()).size() <= 1;
     }
-    private static int compactScore(List<ClassRecord> records) {
+    public static int compactScore(List<ClassRecord> records) {
         return 20 - (int) records.stream().map(ClassRecord::getDay).distinct().count();
     }
-    private static int evenSpreadScore(List<ClassRecord> records) {
+    public static int evenSpreadScore(List<ClassRecord> records) {
         Map<DayOfWeek, Long> counts = records.stream().collect(Collectors.groupingBy(ClassRecord::getDay, Collectors.counting()));
         if (counts.isEmpty()) return 0;
         long max = Collections.max(counts.values());
@@ -188,9 +183,9 @@ public class TimetableGenerator {
         return (int) (20 - (max - min));
     }
 
-    private static class SearchState {
-        List<ClassRecord> records;
-        int score;
-        SearchState(List<ClassRecord> records, int score) { this.records = records; this.score = score; }
+    public static class SearchState {
+        public List<ClassRecord> records;
+        public int score;
+        public SearchState(List<ClassRecord> records, int score) { this.records = records; this.score = score; }
     }
 }

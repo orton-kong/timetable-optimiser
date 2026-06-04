@@ -6,8 +6,10 @@ import org.junit.jupiter.api.Test;
 
 import java.security.Key;
 import java.time.DayOfWeek;
-import timetableoptimizer.DataStore;
-import timetableoptimizer.ClassManager;
+import java.util.ArrayList;
+import java.util.List;
+
+import timetableoptimizer.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -62,6 +64,40 @@ class DataStoreTest {
                 () -> assertEquals("506 Computer Lab", dataStore.getClasses().get(classRecordKey2).getLocation())
         );
 
+    }
+
+    @Tag("Nathan")
+    @Tag("Core")
+    @DisplayName("Test get timetables exact")
+    @Test
+    void TestGetTimetableExact() {
+        DataStore ds = new DataStore();
+        TimetableManager manager = new TimetableManager(ds);
+
+        Timetable timetable = new Timetable("Study Plan", new ArrayList<>(), false, new Preference());
+
+        ds.getTimetables().put("Study Plan", timetable);
+
+        Timetable result = manager.getTimetable("Study Plan");
+
+        assertSame(timetable, result);
+    }
+
+    @Tag("Nathan")
+    @Tag("Core")
+    @DisplayName("Test get timetables exact")
+    @Test
+    void TestGetTimetableExactCaseInsensitive() {
+        DataStore ds = new DataStore();
+        TimetableManager manager = new TimetableManager(ds);
+
+        Timetable timetable = new Timetable("Study Plan", new ArrayList<>(), false, new Preference());
+
+        ds.getTimetables().put("Study Plan", timetable);
+
+        Timetable result = manager.getTimetable("study Plan");
+
+        assertSame(timetable, result);
     }
 
 }

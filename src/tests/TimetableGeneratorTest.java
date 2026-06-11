@@ -122,6 +122,32 @@ class TimetableGeneratorTest {
 
     @Tag("Nathan")
     @Tag("Core")
+    @DisplayName("Test generate timetable with overlapping times")
+    @Test
+    void testGenerateTimetableOverlap() {
+        DataStore dataStore = new DataStore();
+
+        ClassRecord classRecord1 = createClassGeneral("1", "Comp3033", "Cloud Computing", "Workshop", 1, Campus.TONSLEY, DayOfWeek.WEDNESDAY, LocalTime.of(8, 0));
+        ClassRecord classRecord2 = createClassGeneral("2", "COMP1001", "Cloud Computing", "Tutorial", 1, Campus.TONSLEY, DayOfWeek.WEDNESDAY, LocalTime.of(8, 0));
+        dataStore.getClasses().put("1", classRecord1);
+        dataStore.getClasses().put("2", classRecord2);
+
+        List<String> topics = new ArrayList<>();
+        topics.add("COMP3033");
+        topics.add("COMP1001");
+
+        List<Campus> campuses = new ArrayList<>();
+        campuses.add(Campus.TONSLEY);
+
+        List<Enum<?>> prefs = new ArrayList<>();
+        prefs.add(ClassSpreadPreferences.COMPACT_SPREAD);
+        Preference preference = new Preference(prefs);
+
+        assertThrows(IllegalArgumentException.class, () -> TimetableGenerator.generateTimetable("Test timetable", 1, topics, campuses, false, preference, dataStore));
+    }
+
+    @Tag("Nathan")
+    @Tag("Core")
     @DisplayName("Test generate timetable with null name")
     @Test
     void testGenerateTimetableNullName() {
@@ -635,8 +661,6 @@ class TimetableGeneratorTest {
         List<List<ClassRecord>> result = new ArrayList<>();
 
         TimetableGenerator.backtrackOptions(subjects, 0, new ArrayList<>(), result, true);
-
-        System.out.println(result);
 
         List<ClassRecord> expected = new ArrayList<>();
         expected.addAll(subjectSchedule1);

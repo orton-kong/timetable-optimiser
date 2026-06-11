@@ -10,29 +10,29 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 class TimetableTest {
 
-    @Tag("Orton")
+    @Tag("Nathan")
     @Tag("Core")
-    @DisplayName("Constructor")
+    @DisplayName("Test Timetable Constructor")
     @Test
-    void construct(){
+    void testTimetableConstructor(){
         ClassRecord record = makeClass("1");
         Preference preference = new Preference();
-        Timetable timetable = new Timetable("My Timetable", List.of(record), true, preference);
+        Timetable timetable = new Timetable("Test Timetable", List.of(record), true, preference);
 
         assertAll(
                 () -> assertNotNull(timetable),
-                () -> assertEquals("My Timetable", timetable.getName()),
+                () -> assertEquals("Test Timetable", timetable.getName()),
                 () -> assertEquals(1, timetable.getClasses().size()),
                 () -> assertTrue(timetable.isAllowLectureOverlap()),
                 () -> assertEquals(preference, timetable.getPrefrences())
         );
     }
 
-    @Tag("Orton")
+    @Tag("Nathan")
     @Tag("Core")
-    @DisplayName("Getters and Setters")
+    @DisplayName("Test Timetable Getters and Setters")
     @Test
-    void gettersAndSetters(){
+    void testGettersAndSetters(){
         ClassRecord record = makeClass("1");
         Preference preference = new Preference();
         Timetable timetable = new Timetable("Old Name", null, false, null);
@@ -54,21 +54,21 @@ class TimetableTest {
         assertEquals(0, timetable.getClasses().size());
     }
 
-    private ClassRecord makeClass(String id){
+    ClassRecord makeClass(String id){
         return new ClassRecord(
                 id,
-                "COMP1001",
-                "Programming",
-                new Availability("In person", Campus.BEDFORD, 2, 1),
-                "Tutorial",
+                "COMP3033",
+                "Cloud Computing",
+                new Availability("In person", Campus.TONSLEY, 1, 1),
+                "Lecture",
                 1,
                 LocalDate.of(2026, 7, 27),
                 LocalDate.of(2026, 9, 14),
                 DayOfWeek.MONDAY,
-                LocalTime.parse("09:00"),
+                LocalTime.parse("08:00"),
                 LocalTime.parse("10:00"),
-                "Building",
-                "Room"
+                "Tonsley",
+                "G.42"
         );
     }
 }

@@ -11,23 +11,18 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 class TimetableManagerTest {
 
-    @AfterEach
-    void end() throws Exception {
-        Files.deleteIfExists(Paths.get("out/test-exports/manager.csv"));
-    }
-
     @Tag("Nathan")
     @Tag("Core")
-    @DisplayName("Constructor")
+    @DisplayName("Test TimetableManager Constructor")
     @Test
-    void testConstruct(){
+    void testTimetableManagerConstructor(){
         TimetableManager manager = new TimetableManager(new DataStore());
         assertNotNull(manager);
     }
 
     @Tag("Nathan")
     @Tag("Core")
-    @DisplayName("Generate")
+    @DisplayName("Test Generate")
     @Test
     void testGenerate(){
         DataStore dataStore = makeDataStore();
@@ -44,7 +39,7 @@ class TimetableManagerTest {
 
     @Tag("Nathan")
     @Tag("Core")
-    @DisplayName("List All")
+    @DisplayName("Test List All")
     @Test
     void testListAll(){
         TimetableManager manager = makeManagerWithTimetable();
@@ -55,7 +50,7 @@ class TimetableManagerTest {
 
     @Tag("Nathan")
     @Tag("Core")
-    @DisplayName("View")
+    @DisplayName("Test View")
     @Test
     void testView(){
         TimetableManager manager = makeManagerWithTimetable();
@@ -76,7 +71,7 @@ class TimetableManagerTest {
 
     @Tag("Nathan")
     @Tag("Core")
-    @DisplayName("Find Swap Options")
+    @DisplayName("Test Find Swap Options")
     @Test
     void testFindSwapOptions(){
         TimetableManager manager = makeManagerWithTimetable();
@@ -91,7 +86,7 @@ class TimetableManagerTest {
 
     @Tag("Nathan")
     @Tag("Core")
-    @DisplayName("Swap Class Instance")
+    @DisplayName("Test Swap Class Instance")
     @Test
     void testSwapClassInstance(){
         TimetableManager manager = makeManagerWithTimetable();
@@ -114,7 +109,7 @@ class TimetableManagerTest {
 
     @Tag("Nathan")
     @Tag("Core")
-    @DisplayName("Delete")
+    @DisplayName("Test Delete")
     @Test
     void testDelete(){
         DataStore dataStore = makeDataStore();
@@ -131,7 +126,7 @@ class TimetableManagerTest {
 
     @Tag("Nathan")
     @Tag("Core")
-    @DisplayName("Export")
+    @DisplayName("Test Export")
     @Test
     void testExport() throws Exception {
         TimetableManager manager = makeManagerWithTimetable();
@@ -139,11 +134,13 @@ class TimetableManagerTest {
         manager.export("Test Timetable", "out/test-exports/manager.csv");
 
         assertTrue(Files.exists(Paths.get("out/test-exports/manager.csv")));
+
+        Files.deleteIfExists(Paths.get("out/test-exports/manager.csv"));
     }
 
     @Tag("Nathan")
     @Tag("Core")
-    @DisplayName("Get Timetable")
+    @DisplayName("Test Get Timetable")
     @Test
     void testGetTimetable(){
         TimetableManager manager = makeManagerWithTimetable();
@@ -158,7 +155,7 @@ class TimetableManagerTest {
 
     @Tag("Nathan")
     @Tag("Core")
-    @DisplayName("Find Actual Timetable Name")
+    @DisplayName("Test Find Actual Timetable Name")
     @Test
     void testFindActualTimetableName(){
         TimetableManager manager = makeManagerWithTimetable();
@@ -215,7 +212,7 @@ class TimetableManagerTest {
         return new ClassRecord(
                 id,
                 "COMP1001",
-                "Programming",
+                "Computing Fundamentals",
                 new Availability("In person", Campus.BEDFORD, 2, 1),
                 className,
                 instance,
@@ -224,8 +221,8 @@ class TimetableManagerTest {
                 day,
                 LocalTime.parse(start),
                 LocalTime.parse(end),
-                "Building",
-                "Room"
+                "Somewhere",
+                "1.33"
         );
     }
 }
